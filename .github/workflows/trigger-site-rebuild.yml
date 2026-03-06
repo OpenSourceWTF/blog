@@ -1,0 +1,16 @@
+name: Trigger site rebuild
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch to site repo
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.SITE_REPO_PAT }}
+          repository: OpenSourceWTF/opensource.wtf
+          event-type: blog-content-updated
