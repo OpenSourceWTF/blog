@@ -12,11 +12,11 @@ image: "/content/blog/images/scan-dashboard.png"
 
 [Last time](https://opensource.wtf/blog/launch-the-load-bearing-internet) we ended on a problem. We spend a fortune guarding production, the servers out in the world, and little guarding the machine where the software actually gets built. The supply chain runs right through that machine. Every `npm install` pulls code that you implicitly trust.
 
-The leaderboard tells you which packages the world leans on. It can't tell you if one of them had gone bad. We now added the part that can. It reads new releases, runs them, and flags the ones acting like malware.  Its fast enough to catch a compromised version while its being distributed. The verdicts go on a public blockchain, so they stick around accessible to anyone iwthout being dependent on hosting factors.
+The [leaderboard](https://leaderboard.opensource.wtf) tells you which packages the world leans on. It can't tell you if one of them had gone bad. We now added the part that can. It reads new releases, runs them, and flags the ones acting like malware. It's fast enough to catch a compromised version while it's being distributed. The verdicts go on a public blockchain, so they stick around, accessible to anyone without being dependent on hosting factors.
 
 ## Drinking From a Firehose
 
-Open the **Live Feed** and watch it for a minute.
+Open the [**Live Feed**](https://leaderboard.opensource.wtf/feed) and watch it for a minute.
 
 ![The Live Feed: a stream of npm and PyPI packages publishing in real time, each row stamped with how long ago it landed, the newest seven and nineteen seconds old.](images/feed-stream.png)
 
@@ -26,11 +26,11 @@ Packages land constantly. On a normal weekday npm and PyPI register about 7,500 
 
 This isn't a new problem, and we aren't the only ones on it. [SafeDep](https://safedep.io/how-safedep-works) does it too. But few people are doing it for the open-source community, so we are. We haven't caught up to the whole feed yet, so we start with the packages the leaderboard already ranks, the top 10,000 in each ecosystem, and take new releases off the feed as they publish. 
 
-We look at each package three ways. First we run [OSV Scanner](https://github.com/google/osv-scanner), the standard open-source pass against the public advisory databases. Then an LLM, Qwen3.6 27B, reads the source and works out what the code is doing with our custom per ecosystem prompt. Then a sandbox installs the package and watches what it reaches for, like the keys and tokens we leave out as bait, and a second LLM run analyzes logs from the sandbox to look at egress, or honey pot access. From those three we mark the version High-risk, Deceptive, Insecure, Inconclusive, or Clean.
+We look at each package three ways. First we run [OSV Scanner](https://github.com/google/osv-scanner), the standard open-source pass against the public advisory databases. Then an LLM, Qwen3.6-27B (an open-weight model we run on our own hardware), reads the source and works out what the code is doing with our custom per-ecosystem prompt. Then a sandbox installs the package and watches what it reaches for, like the keys and tokens we leave out as bait, and a second LLM run analyzes the logs from the sandbox for egress and honeypot access. From those three we mark the version High-risk, Deceptive, Insecure, Inconclusive, or Clean.
 
 ## Enhancing OSV Scanner Pattern Matching with Semantic Scans for Fuzzy Matching
 
-OSV Scanner is the a first pass, and it's a good one. It checks a package against the public advisory databases, the list of problems someone has already found and written up. It's fast, and it's right about everything on that list. What it can't do is catch something no one has reported yet.
+OSV Scanner is a first pass, and it's a good one. It checks a package against the public advisory databases, the list of problems someone has already found and written up. It's fast, and it's right about everything on that list. What it can't do is catch something no one has reported yet.
 
 That's where the AI comes in. It reads the source and tries to reason on what the code actually does, not just whether it matches a known signature. It can catch things that aren't on any list yet, like an install script reaching for keys, a dependency list built to get pulled in by accident, or code obfuscated to hide what it's doing. OSV handles the known patterns, and the AI handles suspicious new patterns.
 
@@ -48,7 +48,7 @@ We flag any verdict on a version as soon as possible. The dangerous moment for a
 
 ## The Verdicts Are Hosted On An Immutable Blockchain
 
-A verdict isn't auditable if someone can quietly change it later. So we write every finished verdict to the **TEA blockchain**.  Scans aren't replaced, they can't be due to the rules of the claims contract, we can only publish new scans so the community has a truthful history of our determinations based and quality of our algorithm.  The permanence and immutability are the reasons why we use a chain at all. Click any verdict and pull up the transaction yourself.
+A verdict isn't auditable if someone can quietly change it later. So we write every finished verdict to the **TEA blockchain**.  Scans aren't replaced, they can't be due to the rules of the claims contract, we can only publish new scans so the community has a truthful history of our determinations and the quality of our algorithm. The permanence and immutability are the reasons why we use a chain at all. Click [any verdict](https://leaderboard.opensource.wtf) and pull up the transaction yourself.
 
 ![The per-version view for a flagged package, showing an on-chain record of the high-risk verdict with a signed payload and a link to the transaction.](images/aidguard-onchain.png)
 
@@ -75,6 +75,8 @@ Top to bottom:
 A maintainer reads it and sees what tripped the package. Someone about to install it sees the verdict and stops.
 
 ## What's Next
+
+That's the whole loop: every load-bearing release gets read by OSV and an LLM, run in a sandbox, and stamped with a verdict nobody can quietly change, usually within an hour of going live. A poisoned version gets a warning while it's still spreading, not weeks later in a writeup.
 
 Today the scanner covers npm and PyPI. Next we're extending it to [pkgx](https://pkgx.sh) and its [pantry](https://github.com/pkgxdev/pantry), the open catalog of packages pkgx installs and runs. We'll also explore integrating dependency graph scanning in pkgx to make it malware aware and prevent supply chain attacks.
 
