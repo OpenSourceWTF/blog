@@ -18,9 +18,9 @@ The [leaderboard](https://leaderboard.opensource.wtf) tells you which packages t
 
 Open the [**Live Feed**](https://leaderboard.opensource.wtf/feed) and watch it for a minute.
 
-![The Live Feed: a stream of npm and PyPI packages publishing in real time, each row stamped with how long ago it landed, the newest seven and nineteen seconds old.](images/feed-stream.png)
+![Animated: the Live Feed streaming npm and PyPI publishes in real time, newest at the top, with flagged scans listed underneath.](images/feed.gif)
 
-<small>The live publish stream. The numbers on the right are how long ago each version shipped.</small>
+<small>The live publish stream, updating as packages ship. The numbers on the right are how long ago each version landed; flagged scans surface underneath.</small>
 
 Packages land constantly. On a normal weekday npm and PyPI register about 7,500 brand-new packages, plus tens of thousands of releases and updates to ones that already exist, on the order of 85,000 events a day. Nobody reviews 85,000 a day, and for most of them nobody reviews the code at all. A maintainer publishes a version, it's live in seconds, and the first person to install it is the one who finds out if something is wrong.
 
@@ -40,9 +40,9 @@ Take `aid-guard1`. It's the #507 most-depended-upon package on npm, listed as a 
 
 Reading a package is half the job. Catching it fast is the other half. The scanner works off that same publish feed, so it usually reaches a release within an hour of publish, not a day later in a security writeup after the case.
 
-![The Scans dashboard: 16,214 package versions scanned, 120 flagged, a live queue, and two packages being scanned at this moment.](images/scan-dashboard.png)
+![Animated: the Scans dashboard with packages being read and detonated live, the queue draining, and verdicts landing.](images/scan.gif)
 
-<small>The Scans tab. The bar is every version checked so far, sorted by verdict; the left column is the live queue.</small>
+<small>The Scans tab. The bar is every version checked so far, sorted by verdict; the left column is the live queue, draining as packages get read and detonated.</small>
 
 We flag any verdict on a version as soon as possible. The dangerous moment for a poisoned release is right after it ships, before anyone notices. While the recommendation is to wait 2-3 hours before updating to the latest releases as a work around, someone still needs to detect issues.  The npm worms this past year each hit hundreds of packages in a day. On the board that looks like a sudden batch of high-risk versions, all brand-new, going up while the worm still spreads. That's when a warning helps.
 
