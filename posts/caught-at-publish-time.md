@@ -1,13 +1,14 @@
 ---
 title: "Catching Malware at Publish Time"
 date: "2026-06-29"
-excerpt: "About {{NEW_PER_DAY}} new packages ship to npm and PyPI every day, but who is validating them?"
+excerpt: "About 7,500 new packages ship to npm and PyPI every day, but who is validating them?"
 tags: ["announcement", "leaderboard", "supply-chain", "security", "scanning", "malware", "open-source"]
+image: "/content/blog/images/scan-dashboard.png"
 ---
 
 # Catching Malware at Publish Time
 
-*About {{NEW_PER_DAY}} new packages ship to npm and PyPI every day, plus {{UPDATES_PER_DAY}} new versions of existing ones. We read the load-bearing ones with an LLM, run them in a sandbox, and write the verdict to a blockchain.*
+*About 7,500 new packages ship to npm and PyPI every day, plus tens of thousands more releases of existing ones. We read the load-bearing ones with an LLM, run them in a sandbox, and write the verdict to a blockchain.*
 
 [Last time](https://opensource.wtf/blog/launch-the-load-bearing-internet) we ended on a problem. We spend a fortune guarding production, the servers out in the world, and little guarding the machine where the software actually gets built. The supply chain runs right through that machine. Every `npm install` pulls code that you implicitly trust.
 
@@ -21,41 +22,39 @@ Open the **Live Feed** and watch it for a minute.
 
 <small>The live publish stream. The numbers on the right are how long ago each version shipped.</small>
 
-Packages land constantly. On a normal weekday npm and PyPI take in about {{NEW_PER_DAY}} brand-new packages and another {{UPDATES_PER_DAY}} new versions of ones that already exist, close to {{TOTAL_PER_DAY}} publishes a day. Nobody reviews {{TOTAL_PER_DAY}} publishes a day, and for most of them nobody reviews the code at all. A maintainer publishes a version, it's live in seconds, and the first person to install it is the one who finds out if something is wrong.
+Packages land constantly. On a normal weekday npm and PyPI register about 7,500 brand-new packages, plus tens of thousands of releases and updates to ones that already exist, on the order of 85,000 events a day. Nobody reviews 85,000 a day, and for most of them nobody reviews the code at all. A maintainer publishes a version, it's live in seconds, and the first person to install it is the one who finds out if something is wrong.
 
 This isn't a new problem, and we aren't the only ones on it. [SafeDep](https://safedep.io/how-safedep-works) does it too. But few people are doing it for the open-source community, so we are. We haven't caught up to the whole feed yet, so we start with the packages the leaderboard already ranks, the top 10,000 in each ecosystem, and take new releases off the feed as they publish. 
 
-We look at each package three ways. First we run [OSV Scanner](https://github.com/google/osv-scanner), the standard open-source pass against the public advisory databases. Then an LLM reads the source and works out what the code is doing. Then a sandbox installs the package and watches what it reaches for, like the keys and tokens we leave out as bait, and a second model reads back what the sandbox saw. From those three we mark the version High-risk, Deceptive, Insecure, Inconclusive, or Clean.
+We look at each package three ways. First we run [OSV Scanner](https://github.com/google/osv-scanner), the standard open-source pass against the public advisory databases. Then an LLM, Qwen3.6 27B, reads the source and works out what the code is doing with our custom per ecosystem prompt. Then a sandbox installs the package and watches what it reaches for, like the keys and tokens we leave out as bait, and a second LLM run analyzes logs from the sandbox to look at egress, or honey pot access. From those three we mark the version High-risk, Deceptive, Insecure, Inconclusive, or Clean.
 
-## AI Adds Coverage To OSV Scanner
+## Enhancing OSV Scanner Pattern Matching with Semantic Scans for Fuzzy Matching
 
-OSV Scanner is the first pass, and it's a good one. It checks a package against the public advisory databases, the list of problems someone has already found and written up. It's fast, and it's right about everything on that list. What it can't do is catch something no one has reported yet.
+OSV Scanner is the a first pass, and it's a good one. It checks a package against the public advisory databases, the list of problems someone has already found and written up. It's fast, and it's right about everything on that list. What it can't do is catch something no one has reported yet.
 
-That's where the AI comes in. It reads the source and looks at what the code actually does, not just whether it matches a known signature. So it can catch things that aren't on any list yet, like an install script reaching for keys, a dependency list built to get pulled in by accident, or code obfuscated to hide what it's doing. OSV handles the known cases, and the AI takes the rest.
+That's where the AI comes in. It reads the source and tries to reason on what the code actually does, not just whether it matches a known signature. It can catch things that aren't on any list yet, like an install script reaching for keys, a dependency list built to get pulled in by accident, or code obfuscated to hide what it's doing. OSV handles the known patterns, and the AI handles suspicious new patterns.
 
 Take `aid-guard1`. It's the #507 most-depended-upon package on npm, listed as a dependency by 7,514 others, and it gets downloaded 140 times a week. Those two numbers don't belong together, and that gap is the first thing wrong with it. The AI read it and flagged it high-risk. We'll go through its full page later on.
 
-## We catch it while the worm is still spreading
+## Catching Supply Chain Attacks In Real Time
 
-Reading them is half of the job. Doing it in time is the rest. The scanner takes its work off that same publish feed, so most releases get scanned within an hour of going up, not three weeks later in somebody's writeup.
+Reading a package is half the job. Catching it fast is the other half. The scanner works off that same publish feed, so it usually reaches a release within an hour of publish, not a day later in a security writeup after the case.
 
 ![The Scans dashboard: 16,214 package versions scanned, 120 flagged, a live queue, and two packages being scanned at this moment.](images/scan-dashboard.png)
 
 <small>The Scans tab. The bar is every version checked so far, sorted by verdict; the left column is the live queue.</small>
 
-A verdict on a version less than three days old gets flagged, because the dangerous moment for a poisoned release is right after it ships, before anyone has noticed. The npm worms this past year each hit hundreds of packages within a day. On the board that shows up as a batch of brand-new high-risk versions appearing at once, while the worm is still spreading. That's the window where a warning actually helps.
+We flag any verdict on a version as soon as possible. The dangerous moment for a poisoned release is right after it ships, before anyone notices. While the recommendation is to wait 2-3 hours before updating to the latest releases as a work around, someone still needs to detect issues.  The npm worms this past year each hit hundreds of packages in a day. On the board that looks like a sudden batch of high-risk versions, all brand-new, going up while the worm still spreads. That's when a warning helps.
 
-## The verdicts live on a blockchain so they outlast us
+## The Verdicts Are Hosted On An Immutable Blockchain
 
-A verdict isn't much use if you can't tell whether it's been quietly changed since. So every finished one also gets written to the **TEA blockchain**.
+A verdict isn't auditable if someone can quietly change it later. So we write every finished verdict to the **TEA blockchain**.  Scans aren't replaced, they can't be due to the rules of the claims contract, we can only publish new scans so the community has a truthful history of our determinations based and quality of our algorithm.  The permanence and immutability are the reasons why we use a chain at all. Click any verdict and pull up the transaction yourself.
 
 ![The per-version view for a flagged package, showing an on-chain record of the high-risk verdict with a signed payload and a link to the transaction.](images/aidguard-onchain.png)
 
 <small>Each verdict is attested on-chain: signed, dated, and linked to a transaction anyone can pull up, sitting apart from our own database.</small>
 
-Our database can go down. The site can be taken offline, pulled by a lawsuit, or shut off when we lose interest. Once a verdict is on the chain, it stays. It's a signed, dated record on a ledger anyone can read, with us or without us. We can't edit it, and we can't quietly retract one to cover a mistake. For a record whose only job is to say a version was malware on a given date, that permanence is the reason to put it on a chain at all. Click any verdict and you can pull up the transaction yourself.
-
-## Everything the scanner found, on one package
+## Features
 
 Here's `aid-guard1`'s full page, every check the scanner ran in one place.
 
@@ -63,23 +62,29 @@ Here's `aid-guard1`'s full page, every check the scanner ran in one place.
 
 <small>`aid-guard1`: 7,514 dependents, 140 downloads a week, and a dependency list built to be installed by accident.</small>
 
-At the top of its page is the verdict, **High-risk**, with the reason beside it: dependency-confusion and typosquatting. Under that, the two checks sit side by side, the read and the sandbox run, each with its own result.
+Top to bottom:
 
-Below that is the AI's writeup in plain words. `aid-guard1` has a harmless-looking name and a dependency list full of randomly generated package names. If one of those names matches a package some company uses internally, an installer can pull this public version instead of the private one. The more junk names it lists, the more chances it has to land. The specific finding sits under the writeup, pinned to the line in the manifest, with the names quoted straight from the source.
+- **Verdict.** High-risk, with the attack type beside it: dependency-confusion and typosquatting.
+- **Two checks, side by side.** The AI's read of the source and the sandbox run, each with its own result.
+- **Plain-English writeup.** What the package does and why it's dangerous, in words anyone can follow.
+- **The findings.** Each one pinned to its line in the manifest, with the junk dependency names quoted from the source.
+- **Leaderboard scores.** Rank, dependents, and influence, so you can see how much the package was holding up.
+- **OSV cross-check.** What the public advisory databases say, next to our own call.
+- **Version history.** Every release scored on its own, each with its on-chain receipt.
 
-Off to the side are the numbers the leaderboard runs on, rank and dependents and influence, so you can see how much weight a flagged package was holding up. There's a cross-check against OSV, the public advisory databases, next to our own call. And there's the full version history, each release scored on its own, with the on-chain receipt for this one.
+A maintainer reads it and sees what tripped the package. Someone about to install it sees the verdict and stops.
 
-A maintainer can read that page and see exactly what tripped it. Someone about to install the package can see the verdict and stop.
+## What's Next
 
-## Come build the next part with us
+Today the scanner covers npm and PyPI. Next we're extending it to [pkgx](https://pkgx.sh) and its [pantry](https://github.com/pkgxdev/pantry), the open catalog of packages pkgx installs and runs. It's a different slice of the ecosystem, the command-line tools developers run directly, with the same exposure: a package ships, someone installs it, and nobody read the code in between. The same three checks carry over, so we'll run OSV, the AI read, and the sandbox there too, and flag malicious pantry packages the way we flag them on npm.
 
-This is a different way to watch the supply chain. Not a list of malware that already caught someone, but something that reads and runs each package as it ships and leaves a public record of what it found. It's live, it's free like everything else we make, and you can look up anything you depend on.
+We haven't published the scanner's source yet. We want more testing on it first, then we'll open it up.
 
-We're early, and what we want to build next needs open-source developers in it, not just reading the announcement. If that's you, come say hi: the [TEA Discord](#) and [@opensourcewtf](#) on X.
+If you maintain pantry packages, or want to help us reach more ecosystems, come say hi: the [TEA Discord](https://discord.gg/ZfRnVBWJb) and [@OpensourceWTF](https://x.com/OpensourceWTF) on X.
 
 ---
 
-## Appendix: reading the record yourself
+## Check The Opensource.WTF Leaderboard Registry Yourself
 
 *For developers. Each verdict is an [EAS](https://attest.org) attestation on the TEA chain. Here is what one holds and how to take it apart.*
 
@@ -115,7 +120,7 @@ bytes32 reportHash
 | `environment` | string | ecosystem: `npm` or `pypi` |
 | `package` | string | package name |
 | `version` | string | the exact version scanned |
-| `runNumber` | uint32 | scan run index for this version; the resolver keeps `(attester, subjectKey, runNumber)` unique |
+| `runNumber` | uint32 | the scan's index for this version: `0` for the first scan, `1` for the first re-scan, up by one after that. The resolver keeps `(attester, subjectKey, runNumber)` unique |
 | `skill` | string | which scanner wrote it, e.g. `supply-chain` |
 | `status` | uint8 | `0` unknown, `1` completed, `2` errored |
 | `classification` | uint8 | `0` unknown, `1` clean, `2` insecure, `3` deceptive, `4` high-risk |
@@ -154,7 +159,9 @@ supply-chain         skill
 0xb44398a1…105e2e0   reportHash
 ```
 
-No UID on hand? Derive it from the package coordinates through the resolver:
+No UID on hand? Derive it from the package coordinates and a run number through the resolver.
+
+The **run number** is the scan's index for that exact version. The first scan of a version is run `0`, the first re-scan is `1`, and it climbs by one each scan after that, in order. The resolver keys every verdict on `(attester, subjectKey, runNumber)`, so you have to say which run you want. Most versions only ever have run `0`. Because the runs are contiguous from `0`, you can find the latest by counting up until `uidFor` returns `0x0` and taking the last UID before it.
 
 ```bash
 RESOLVER=0xcb78Fc94aa2fb160d3d89702b0d6078E513e1Bb8
@@ -164,9 +171,16 @@ ATTESTER=0xa25C7910208cB3690E9d1e1F44ff45927A0bBc85
 SUBJECT=$(cast keccak "$(cast abi-encode 'f(string,string,string)' npm aid-guard1 2.7.35)")
 # → 0x3da85d70…143ccab
 
+# run 0 — the first (and, for aid-guard1, only) scan of this version
 cast call "$RESOLVER" "uidFor(address,bytes32,uint32)(bytes32)" \
   "$ATTESTER" "$SUBJECT" 0 --rpc-url "$RPC"
 # → 0x0106bf55…cf8a0a
+
+# re-scanned version? walk runs up from 0; the last non-zero uid is the latest:
+for RUN in 0 1 2 3; do
+  cast call "$RESOLVER" "uidFor(address,bytes32,uint32)(bytes32)" \
+    "$ATTESTER" "$SUBJECT" "$RUN" --rpc-url "$RPC"
+done
 ```
 
 No Foundry? The same read is one JSON-RPC call. `getAttestation(bytes32)` has selector `0xa3112a64`, so its calldata is the selector followed by the 32-byte UID:
