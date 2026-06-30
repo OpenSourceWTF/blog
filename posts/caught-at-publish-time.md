@@ -1,85 +1,81 @@
 ---
-title: "Caught at Publish Time"
+title: "Catching Malware at Publish Time"
 date: "2026-06-29"
-excerpt: "About 85,000 packages ship to npm and PyPI every day, more than anyone can read. So an AI reads them for us, a sandbox runs them, and the verdicts go somewhere they can't be erased."
+excerpt: "About {{NEW_PER_DAY}} new packages ship to npm and PyPI every day, but who is validating them?"
 tags: ["announcement", "leaderboard", "supply-chain", "security", "scanning", "malware", "open-source"]
 ---
 
-# Caught at Publish Time
+# Catching Malware at Publish Time
 
-*About 85,000 packages ship to npm and PyPI every day. We read each one with an AI, run it in a sandbox, and write the verdict where it can't be quietly erased.*
+*About {{NEW_PER_DAY}} new packages ship to npm and PyPI every day, plus {{UPDATES_PER_DAY}} new versions of existing ones. We read the load-bearing ones with an LLM, run them in a sandbox, and write the verdict to a blockchain.*
 
-[Last time](https://opensource.wtf/blog/launch-the-load-bearing-internet) we ended on a gap. We spend a fortune guarding production, the servers out in the world, and almost nothing guarding the machine where the software actually gets built. The supply chain runs right through that machine. Every `npm install` pulls code from someone you've never met and runs it on your laptop, next to your keys and your tokens.
+[Last time](https://opensource.wtf/blog/launch-the-load-bearing-internet) we ended on a problem. We spend a fortune guarding production, the servers out in the world, and little guarding the machine where the software actually gets built. The supply chain runs right through that machine. Every `npm install` pulls code that you implicitly trust.
 
-The leaderboard could tell you which packages the world leans on. It couldn't tell you if one of them had gone bad. This is the part that can. It reads new releases, runs them, and flags the ones acting like malware, fast enough to catch a poisoned version while it's still spreading. The verdicts go on a public blockchain, so they stick around even if we don't.
+The leaderboard tells you which packages the world leans on. It can't tell you if one of them had gone bad. We now added the part that can. It reads new releases, runs them, and flags the ones acting like malware.  Its fast enough to catch a compromised version while its being distributed. The verdicts go on a public blockchain, so they stick around accessible to anyone iwthout being dependent on hosting factors.
 
-## The flood is too fast to read by hand
+## Drinking From a Firehose
 
 Open the **Live Feed** and watch it for a minute.
 
-![The Live Feed: a stream of npm and PyPI packages publishing in real time, each row stamped with how long ago it landed, the newest seven and nineteen seconds old.](/content/blog/images/feed-stream.png)
+![The Live Feed: a stream of npm and PyPI packages publishing in real time, each row stamped with how long ago it landed, the newest seven and nineteen seconds old.](images/feed-stream.png)
 
 <small>The live publish stream. The numbers on the right are how long ago each version shipped.</small>
 
-Packages land every few seconds. Our feed counts about 3,500 an hour across npm and PyPI. Call it 85,000 a day. Nobody reads 85,000 packages a day, and mostly nobody reads them at all. A maintainer publishes, it's live in seconds, and the first person to look hard at the code is usually whoever it robs.
+Packages land constantly. On a normal weekday npm and PyPI take in about {{NEW_PER_DAY}} brand-new packages and another {{UPDATES_PER_DAY}} new versions of ones that already exist, close to {{TOTAL_PER_DAY}} publishes a day. Nobody reviews {{TOTAL_PER_DAY}} publishes a day, and for most of them nobody reviews the code at all. A maintainer publishes a version, it's live in seconds, and the first person to install it is the one who finds out if something is wrong.
 
-You can't hire your way out of that. There's no review to sneak past because there is no review. So we handed the job to a machine. We're not caught up to the whole firehose yet, so it starts with the packages the leaderboard already ranks, the load-bearing ones, and takes new releases off the feed as they come in. Each package it gets to is looked at twice. An AI reads the source. A sandbox installs it and watches what it tries to do, and a second AI reads back what the sandbox saw. Then a set of deliberately paranoid rules decides whether any of it adds up to malware. The rules are strict on purpose, because the quickest way to make a scanner worthless is to let it cry wolf.
+This isn't a new problem, and we aren't the only ones on it. [SafeDep](https://safedep.io/how-safedep-works) does it too. But few people are doing it for the open-source community, so we are. We haven't caught up to the whole feed yet, so we start with the packages the leaderboard already ranks, the top 10,000 in each ecosystem, and take new releases off the feed as they publish. 
 
-## An AI that reads the code beats a scanner that matches patterns
+We look at each package three ways. First we run [OSV Scanner](https://github.com/google/osv-scanner), the standard open-source pass against the public advisory databases. Then an LLM reads the source and works out what the code is doing. Then a sandbox installs the package and watches what it reaches for, like the keys and tokens we leave out as bait, and a second model reads back what the sandbox saw. From those three we mark the version High-risk, Deceptive, Insecure, Inconclusive, or Clean.
 
-The usual way to scan a package is to check it against a list of things already known to be bad: a string, a function name, the fingerprint of malware someone caught last month. It's quick, and it only ever finds what's already on the list. New tricks aren't on the list.
+## AI Adds Coverage To OSV Scanner
 
-An AI that reads the code can catch a trick the first time it sees one. Here's one it caught.
+OSV Scanner is the first pass, and it's a good one. It checks a package against the public advisory databases, the list of problems someone has already found and written up. It's fast, and it's right about everything on that list. What it can't do is catch something no one has reported yet.
 
-![The load-dotenv package page, marked High-risk. The static read flags an implicit-environment-injection and a supply-chain-persistence finding, while the behavioral sandbox came back Clean.](/content/blog/images/load-dotenv-highrisk.png)
+That's where the AI comes in. It reads the source and looks at what the code actually does, not just whether it matches a known signature. So it can catch things that aren't on any list yet, like an install script reaching for keys, a dependency list built to get pulled in by accident, or code obfuscated to hide what it's doing. OSV handles the known cases, and the AI takes the rest.
 
-<small>`load-dotenv` is named to be mistaken for `python-dotenv`. The AI read the source and found the trap; the sandbox install came back clean.</small>
-
-`load-dotenv` is named to get mistaken for `python-dotenv`, the package much of the Python world uses to read config files. Install it and nothing obviously bad happens. What the model noticed in the source is a `.pth` file, one of those quiet hooks Python runs on its own every time it starts up. This one was rigged to fire on every Python process on the machine, pulling in environment variables an attacker could point wherever they wanted. The package does nothing at install. It arranges to keep doing something later, on every Python session from then on.
-
-A pattern scanner reads that as an ordinary package and moves on. The sandbox installed it and saw nothing, because the trap doesn't spring until some later run. Reading the code was the only thing that caught it.
+Take `aid-guard1`. It's the #507 most-depended-upon package on npm, listed as a dependency by 7,514 others, and it gets downloaded 140 times a week. Those two numbers don't belong together, and that gap is the first thing wrong with it. The AI read it and flagged it high-risk. We'll go through its full page later on.
 
 ## We catch it while the worm is still spreading
 
 Reading them is half of the job. Doing it in time is the rest. The scanner takes its work off that same publish feed, so most releases get scanned within an hour of going up, not three weeks later in somebody's writeup.
 
-![The Scans dashboard: 16,214 package versions scanned, 120 flagged, a live queue, and two packages being scanned at this moment.](/content/blog/images/scan-dashboard.png)
+![The Scans dashboard: 16,214 package versions scanned, 120 flagged, a live queue, and two packages being scanned at this moment.](images/scan-dashboard.png)
 
 <small>The Scans tab. The bar is every version checked so far, sorted by verdict; the left column is the live queue.</small>
 
-A verdict on a version less than three days old gets a flag on it, because the dangerous moment for a poisoned release is right after it ships and before anyone's noticed. The npm worms this past year each hit hundreds of packages inside a day. On the board that shows up as a sudden rash of brand-new high-risk versions, going up while the thing is still hopping from laptop to laptop. That's the window where a warning is worth anything at all.
+A verdict on a version less than three days old gets flagged, because the dangerous moment for a poisoned release is right after it ships, before anyone has noticed. The npm worms this past year each hit hundreds of packages within a day. On the board that shows up as a batch of brand-new high-risk versions appearing at once, while the worm is still spreading. That's the window where a warning actually helps.
 
 ## The verdicts live on a blockchain so they outlast us
 
 A verdict isn't much use if you can't tell whether it's been quietly changed since. So every finished one also gets written to the **TEA blockchain**.
 
-![The per-version view for a flagged package, showing an on-chain record of the high-risk verdict with a signed payload and a link to the transaction.](/content/blog/images/aidguard-onchain.png)
+![The per-version view for a flagged package, showing an on-chain record of the high-risk verdict with a signed payload and a link to the transaction.](images/aidguard-onchain.png)
 
 <small>Each verdict is attested on-chain: signed, dated, and linked to a transaction anyone can pull up, sitting apart from our own database.</small>
 
-Our database can go down. The site can get pulled offline, or sued offline, or just outlast our interest in running it. The chain doesn't care. Once a verdict is written there it's a signed, dated record on a ledger anyone can read, with us or without us. We can't go back and edit it, and we can't quietly walk one back to cover a mistake. For a record whose only job is to say "this version was malware on this date," that permanence is the whole reason to bother with a chain. Click any verdict and you can pull up the transaction yourself.
+Our database can go down. The site can be taken offline, pulled by a lawsuit, or shut off when we lose interest. Once a verdict is on the chain, it stays. It's a signed, dated record on a ledger anyone can read, with us or without us. We can't edit it, and we can't quietly retract one to cover a mistake. For a record whose only job is to say a version was malware on a given date, that permanence is the reason to put it on a chain at all. Click any verdict and you can pull up the transaction yourself.
 
 ## Everything the scanner found, on one package
 
-Here it all is on a single package. `aid-guard1` is listed as a dependency by 7,514 others. It gets downloaded 140 times a week. Those two numbers do not belong together, and the gap between them is the first thing wrong with it.
+Here's `aid-guard1`'s full page, every check the scanner ran in one place.
 
-![The aid-guard1 detail page, marked High-risk for dependency-confusion and typosquatting, with the AI's report and a critical finding on the dependency list.](/content/blog/images/scan-highrisk.png)
+![The aid-guard1 detail page, marked High-risk for dependency-confusion and typosquatting, with the AI's report and a critical finding on the dependency list.](images/scan-highrisk.png)
 
 <small>`aid-guard1`: 7,514 dependents, 140 downloads a week, and a dependency list built to be installed by accident.</small>
 
 At the top of its page is the verdict, **High-risk**, with the reason beside it: dependency-confusion and typosquatting. Under that, the two checks sit side by side, the read and the sandbox run, each with its own result.
 
-Below them is the AI's account in plain words. `aid-guard1` has a harmless-looking name and a dependency list packed with randomly generated junk package names. Match any one of those names to a package some company uses internally, and an installer can grab this public version instead, payload and all. A hundred junk names is a hundred chances at it. The specific finding sits under the writeup, pinned to the line in the manifest, with the nonsense names quoted straight out of the source.
+Below that is the AI's writeup in plain words. `aid-guard1` has a harmless-looking name and a dependency list full of randomly generated package names. If one of those names matches a package some company uses internally, an installer can pull this public version instead of the private one. The more junk names it lists, the more chances it has to land. The specific finding sits under the writeup, pinned to the line in the manifest, with the names quoted straight from the source.
 
 Off to the side are the numbers the leaderboard runs on, rank and dependents and influence, so you can see how much weight a flagged package was holding up. There's a cross-check against OSV, the public advisory databases, next to our own call. And there's the full version history, each release scored on its own, with the on-chain receipt for this one.
 
-A maintainer can read that page and see exactly what tripped it. Someone about to install it can read the first word and stop.
+A maintainer can read that page and see exactly what tripped it. Someone about to install the package can see the verdict and stop.
 
 ## Come build the next part with us
 
-This is a different way to watch the supply chain. Not a list of fingerprints of malware that already got someone, but something that reads and runs each package as it ships and leaves a public note of what it found. It's live, it's free like the rest of what we make, and you can go look up anything you depend on.
+This is a different way to watch the supply chain. Not a list of malware that already caught someone, but something that reads and runs each package as it ships and leaves a public record of what it found. It's live, it's free like everything else we make, and you can look up anything you depend on.
 
-We're early, and the things we want to build next don't work without open-source developers in them, not just reading the announcement. If that's you, come say hi: the [TEA Discord](#), and [@opensourcewtf](#) on X. We'd rather build it with you than for you.
+We're early, and what we want to build next needs open-source developers in it, not just reading the announcement. If that's you, come say hi: the [TEA Discord](#) and [@opensourcewtf](#) on X.
 
 ---
 
