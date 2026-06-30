@@ -76,15 +76,15 @@ A maintainer reads it and sees what tripped the package. Someone about to instal
 
 ## What's Next
 
-Today the scanner covers npm and PyPI. Next we're extending it to [pkgx](https://pkgx.sh) and its [pantry](https://github.com/pkgxdev/pantry), the open catalog of packages pkgx installs and runs. It's a different slice of the ecosystem, the command-line tools developers run directly, with the same exposure: a package ships, someone installs it, and nobody read the code in between. The same three checks carry over, so we'll run OSV, the AI read, and the sandbox there too, and flag malicious pantry packages the way we flag them on npm.
+Today the scanner covers npm and PyPI. Next we're extending it to [pkgx](https://pkgx.sh) and its [pantry](https://github.com/pkgxdev/pantry), the open catalog of packages pkgx installs and runs. We'll also explore integrating dependency graph scanning in pkgx to make it malware aware and prevent supply chain attacks.
 
-We haven't published the scanner's source yet. We want more testing on it first, then we'll open it up.
+We haven't published the scanner's source yet. We want more testing on it first, then we'll open it up and make an announcement.
 
-If you maintain pantry packages, or want to help us reach more ecosystems, come say hi: the [TEA Discord](https://discord.gg/ZfRnVBWJb) and [@OpensourceWTF](https://x.com/OpensourceWTF) on X.
+If you maintain pantry packages, or want to help us reach more ecosystems, come say hi: the [TEA Discord](https://discord.gg/ZfRnVBWJb) and [@OpenSourceWTF](https://x.com/OpensourceWTF) on X.
 
 ---
 
-## Check The Opensource.WTF Leaderboard Registry Yourself
+## Check The OpenSource.WTF Leaderboard Registry Yourself
 
 *For developers. Each verdict is an [EAS](https://attest.org) attestation on the TEA chain. Here is what one holds and how to take it apart.*
 
