@@ -18,7 +18,7 @@ The [leaderboard](https://leaderboard.opensource.wtf) tells you which packages t
 
 Open the [**Live Feed**](https://leaderboard.opensource.wtf/feed) and watch it for a minute.
 
-![Animated: the Live Feed streaming npm and PyPI publishes in real time, newest at the top, with flagged scans listed underneath.](images/feed-live.gif)
+![Animated: the Live Feed streaming npm and PyPI publishes in real time, newest at the top, with flagged scans listed underneath.](images/feed-anim.gif)
 
 <small>The live publish stream, updating as packages ship. The numbers on the right are how long ago each version landed; flagged scans surface underneath.</small>
 
@@ -40,7 +40,7 @@ Take `aid-guard1`. It's the #507 most-depended-upon package on npm, listed as a 
 
 Reading a package is half the job. Catching it fast is the other half. The scanner works off that same publish feed, so it usually reaches a release within an hour of publish, not a day later in a security writeup after the case.
 
-![Animated: the Scans dashboard with packages being read and detonated live, the queue draining, and verdicts landing.](images/scan-live.gif)
+![Animated: the Scans dashboard with packages being read and detonated live, the queue draining, and verdicts landing.](images/scan-anim.gif)
 
 <small>The Scans tab. The bar is every version checked so far, sorted by verdict; the left column is the live queue, draining as packages get read and detonated.</small>
 
