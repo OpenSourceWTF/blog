@@ -1,0 +1,8 @@
+.DS_Store
+
+# Local-only working drafts. This repo is PUBLIC and pushing to main
+# auto-deploys, so unfinished pieces (placeholder figures, unpublished
+# benchmark numbers) stay out of git. Only posts/*.md is read by the
+# site build; move a file into posts/ when it is cleared to publish.
+candidates/
+drafts/

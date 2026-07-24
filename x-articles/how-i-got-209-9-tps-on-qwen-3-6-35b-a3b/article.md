@@ -1,19 +1,11 @@
----
-title: "How I got 209.9 tps on Qwen-3.6-35b-a3b"
-date: "2026-07-24"
-excerpt: "I set out to push Qwen3.6-35B-A3B past 200 tokens per second on an M5 Max. Faster GPU kernels kept losing, so I built the profiler MLX was missing and started removing the work around the GPU instead."
-image: "/content/blog/images/a3b-dispatch-investigation-thumbnail.png"
-tags: ["ai", "local-llm", "mixture-of-experts", "metal", "mlx", "apple-silicon", "inference", "optimization"]
----
-
 # How I got 209.9 tps on Qwen-3.6-35b-a3b.
 
 **David Tai**, OpenSource.WTF
 
-![An investigator studies a profiler-like queue with many small coral commands on the top lane and fewer long blue GPU operations on the bottom lane](images/a3b-dispatch-investigation-thumbnail.png)
+[INSERT IMAGE: a3b-dispatch-investigation-thumbnail.png]
+ALT: An investigator studies a profiler-like queue with many small coral commands on the top lane and fewer long blue GPU operations on the bottom lane
+CAPTION: The investigation began with faster GPU kernels and ended with the command stream feeding them.
 
-*The investigation began with faster GPU kernels and ended with the command
-stream feeding them.*
 
 ## 1. Introduction
 
@@ -84,11 +76,10 @@ The model uses K1 speculative decoding: its trained MTP head drafts one token,
 the target model verifies the committed token and the draft together, and a
 rejected draft is repaired with a one-row pass.
 
-![K1 speculative decode route from a primary token through one-token drafting, two-row verification, acceptance, or one-row repair](images/a3b-k1-cycle.png)
+[INSERT IMAGE: a3b-k1-cycle.png]
+ALT: K1 speculative decode route from a primary token through one-token drafting, two-row verification, acceptance, or one-row repair
+CAPTION: The target verifies the primary token and one trained draft together. Accepted drafts commit directly; rejected drafts continue through a one-row repair from the verified primary-token state.
 
-*The target verifies the primary token and one trained draft together. Accepted
-drafts commit directly; rejected drafts continue through a one-row repair from
-the verified primary-token state.*
 
 Before optimizing that cycle, I had to separate actual performance work from
 bugs that made the starting point misleading.
@@ -140,10 +131,10 @@ path split normalization, gates, recurrent-state work, and capture across
 multiple boundaries. The fixed-M2 kernel kept the exact update order but held
 the work together.
 
-![Historical fixed-M2 GDN post-convolution flow before and after two serial positions are held inside one fused owner](images/a3b-experiment-1-fixed-m2-gdn.png)
+[INSERT IMAGE: a3b-experiment-1-fixed-m2-gdn.png]
+ALT: Historical fixed-M2 GDN post-convolution flow before and after two serial positions are held inside one fused owner
+CAPTION: The fusion keeps normalization, gates, recurrence, capture, and state output inside one owner without changing their order.
 
-*The fusion keeps normalization, gates, recurrence, capture, and state output
-inside one owner without changing their order.*
 
 The transferable idea is not “copy this GDN kernel.” It is to find a serial
 recurrent tail whose intermediate state is written only so the next tiny kernel
@@ -157,10 +148,10 @@ The row-owned router applied the same ownership test to top-8 selection. At one
 or two rows, the arithmetic is tiny; handing each stage to a different kernel
 cost more than selecting the experts.
 
-![Historical router construction before and after one threadgroup owns one complete 256-expert row](images/a3b-experiment-2-row-owned-router.png)
+[INSERT IMAGE: a3b-experiment-2-row-owned-router.png]
+ALT: Historical router construction before and after one threadgroup owns one complete 256-expert row
+CAPTION: The owner is the complete semantic row, including exact selection and normalization—not merely a convenient launch shape.
 
-*The owner is the complete semantic row, including exact selection and
-normalization—not merely a convenient launch shape.*
 
 One threadgroup owns a complete row, assigns one thread to each of 256 experts,
 performs the top-8 tournament, and writes the normalized scores and expert ids.
@@ -178,10 +169,10 @@ cannot have one unambiguous owner, this geometry is the wrong one.
 The combine tail removed a large temporary tensor from the other end of the
 MoE block.
 
-![Historical combine-tail construction before and after one output element owns the ordered eight-expert accumulation](images/a3b-experiment-3-combine-tail.png)
+[INSERT IMAGE: a3b-experiment-3-combine-tail.png]
+ALT: Historical combine-tail construction before and after one output element owns the ordered eight-expert accumulation
+CAPTION: Output ownership removes the broadcast temporary only while one owner can preserve the required eight-value accumulation order.
 
-*Output ownership removes the broadcast temporary only while one owner can
-preserve the required eight-value accumulation order.*
 
 Each output element is owned by one thread, which performs the eight weighted
 accumulations directly. This works because the route count is fixed at eight
@@ -195,10 +186,10 @@ The captured-primary repair attacked repeated work outside the kernels. Row 0
 of the two-row verify already contains the exact state after the primary token.
 The old rejection path threw it away.
 
-![Rejected K1 draft flow before and after repair continues from the captured primary-token state in verifier row 0](images/a3b-experiment-4-captured-primary-repair.png)
+[INSERT IMAGE: a3b-experiment-4-captured-primary-repair.png]
+ALT: Rejected K1 draft flow before and after repair continues from the captured primary-token state in verifier row 0
+CAPTION: A rejection continues from the exact prefix already owned by row 0 instead of reconstructing that state through the host.
 
-*A rejection continues from the exact prefix already owned by row 0 instead of
-reconstructing that state through the host.*
 
 The lesson is broader than speculative decoding: before recomputing after a
 branch, check whether the work before the branch already produced the exact
@@ -210,10 +201,9 @@ The early bundle combined packed gate/up projections, the row-owned router, the
 fused combine tail, fixed-M2 GDN post-conv, and the compiled target forward. It
 moved 142.179 to 153.044 tokens per second: **+7.642% TPS**.
 
-![Five installed changes flowing into one measured early-bundle result without assigning the gain to an individual component](images/a3b-experiment-5-early-bundle.png)
-
-*The experiment measured all five changes as one treatment. It proved that the
-combined path won, not how much any one member contributed.*
+[INSERT IMAGE: a3b-experiment-5-early-bundle.png]
+ALT: Five installed changes flowing into one measured early-bundle result without assigning the gain to an individual component
+CAPTION: The experiment measured all five changes as one treatment. It proved that the combined path won, not how much any one member contributed.
 
 That A/B proved the stack could win. It did not tell me how much of the gain
 belonged to any one branch.
@@ -256,10 +246,10 @@ C2 and C3 used different GPU geometries and did different amounts of GPU work.
 End to end, they lost almost the same amount. The common term was 150 extra
 dispatches.
 
-![Cycle-aligned profiler comparison showing fewer dispatches, less CPU encode work, and slightly more GPU work after PR 174](images/a3b-profiler-performance-ladder.png)
+[INSERT IMAGE: a3b-profiler-performance-ladder.png]
+ALT: Cycle-aligned profiler comparison showing fewer dispatches, less CPU encode work, and slightly more GPU work after PR 174
+CAPTION: The successful path shortens the CPU command stream. Its measured GPU work is slightly longer, but the active range still finishes sooner.
 
-*The successful path shortens the CPU command stream. Its measured GPU work is
-slightly longer, but the active range still finishes sooner.*
 
 At one or two decode rows, A3B is a stream of small GPU jobs. The CPU has to
 encode each job into a Metal command stream. MLX and Metal overlap some of that
@@ -428,20 +418,17 @@ terminal decision buffer is outside the selected range.
 
 ### Before: pristine MTPLX 2.3.0
 
-![MLX Profiler timeline for the cycle-aligned pristine MTPLX 2.3.0 A3B K1 run](images/mlx-profiler-before-v230-k1-cycle-aligned.png)
+[INSERT IMAGE: mlx-profiler-before-v230-k1-cycle-aligned.png]
+ALT: MLX Profiler timeline for the cycle-aligned pristine MTPLX 2.3.0 A3B K1 run
+CAPTION: One active decode burst: 8.54 ms selected wall span, 1,976 dispatches, and 635.91 µs of exposed host encoding.
 
-*One active decode burst: 8.54 ms selected wall span, 1,976 dispatches, and
-635.91 µs of exposed host encoding.*
 
 ### After: the post-#174 exact-arithmetic stack
 
-![MLX Profiler timeline for the cycle-aligned post-PR-174 A3B K1 run](images/mlx-profiler-after-pr174-k1-cycle-aligned.png)
+[INSERT IMAGE: mlx-profiler-after-pr174-k1-cycle-aligned.png]
+ALT: MLX Profiler timeline for the cycle-aligned post-PR-174 A3B K1 run
+CAPTION: The equivalent active decode burst: 8.21 ms selected wall span, 1,459 dispatches, and 205.58 µs of exposed host encoding. The yellow markers are asynchronous task-cap waits that overlap GPU execution, not additional time to add to the wall span. Compared with the before trace, the CPU encodes 517 fewer GPU operations and spends 1.275 ms less time building the command stream.
 
-*The equivalent active decode burst: 8.21 ms selected wall span, 1,459
-dispatches, and 205.58 µs of exposed host encoding. The yellow markers are
-asynchronous task-cap waits that overlap GPU execution, not additional time to
-add to the wall span. Compared with the before trace, the CPU encodes 517 fewer
-GPU operations and spends 1.275 ms less time building the command stream.*
 
 | Cycle-aligned active range | MTPLX 2.3.0 | Post-#174 | Change |
 |---|---:|---:|---:|
@@ -541,10 +528,10 @@ The old speculative loop rebuilt too much of the schedule on every cycle.
 The replacement proves the fixed facts once, when the request route is
 installed:
 
-![The old K1 loop rebuilds and revalidates known work every cycle, while the installed route proves invariants once and enters fixed verifier and repair graphs directly](images/a3b-compiled-k1-route.png)
+[INSERT IMAGE: a3b-compiled-k1-route.png]
+ALT: The old K1 loop rebuilds and revalidates known work every cycle, while the installed route proves invariants once and enters fixed verifier and repair graphs directly
+CAPTION: Compilation pays here because shapes, arithmetic, cache ownership, and the repair prefix are proved once rather than rediscovered every cycle.
 
-*Compilation pays here because shapes, arithmetic, cache ownership, and the
-repair prefix are proved once rather than rediscovered every cycle.*
 
 The two compiled graphs are shared across requests, while the state slots belong
 to the request. The hot path does not rescan invariant metadata, mutate Python
@@ -577,11 +564,10 @@ The stock MoE path expressed a small one- or two-row computation as twelve
 source-level device boundaries. The fused path gives those operations three
 explicit owners.
 
-![Whole-MoE execution before and after twelve source-level device boundaries collapse into three ownership stages](images/a3b-whole-moe-collapse.png)
+[INSERT IMAGE: a3b-whole-moe-collapse.png]
+ALT: Whole-MoE execution before and after twelve source-level device boundaries collapse into three ownership stages
+CAPTION: The fused lane removes nine launches per block and carries only the compact activation between stages; it keeps its own arithmetic baseline because the final combine changes accumulation order.
 
-*The fused lane removes nine launches per block and carries only the compact
-activation between stages; it keeps its own arithmetic baseline because the
-final combine changes accumulation order.*
 
 This removes nine launches per block across 40 target blocks plus the draft
 block. It also avoids materializing the large routed `[M,8,2048]`, shared
@@ -592,10 +578,10 @@ The first two-row Stage 1 grouped the rows but did not make one weight read serv
 both of them. It gained **+1.70% TPS**, but cycle time became 0.67% slower, so it
 was rejected. The working version tiled the expert axis:
 
-![Rejected two-row grouping that rereads all router weights for each row versus expert-axis tiles that reuse one fixed weight region across both rows](images/a3b-two-row-router-tiling.png)
+[INSERT IMAGE: a3b-two-row-router-tiling.png]
+ALT: Rejected two-row grouping that rereads all router weights for each row versus expert-axis tiles that reuse one fixed weight region across both rows
+CAPTION: The accepted geometry earns its name by sharing each packed router-weight region across both rows, then finalizing the route exactly once.
 
-*The accepted geometry earns its name by sharing each packed router-weight
-region across both rows, then finalizing the route exactly once.*
 
 Now each tile loads one fixed router-weight region and uses it for both owned
 rows. The finalizer performs softmax, exact top-8 selection, and normalization.
@@ -640,10 +626,10 @@ value-head/state-quarter tile. Shared normalization and gates are computed once
 into threadgroup memory, while each SIMD group keeps its slice of recurrent
 state in registers across the position loop.
 
-![GDN post-convolution path before and after a state-quarter owner fuses the serial recurrent tail](images/a3b-gdn-postconv-fusion.png)
+[INSERT IMAGE: a3b-gdn-postconv-fusion.png]
+ALT: GDN post-convolution path before and after a state-quarter owner fuses the serial recurrent tail
+CAPTION: The shipped C1 owner removes intermediate traffic without reassociating the serial recurrence.
 
-*The shipped C1 owner removes intermediate traffic without reassociating the
-serial recurrence.*
 
 The exact shipped variant measured 163.0 to 164.4 tokens per second:
 **+0.82% TPS**. The earlier fixed-M2 prototype's **+8.157% TPS** came from a
@@ -660,10 +646,10 @@ require extra synchronization.
 The routed and shared experts each apply a gate projection and an up projection
 to the same input. Stock MLX launches them separately.
 
-![Separate gate and up quantized projections versus load-time output-axis packing into one dispatch](images/a3b-packed-gate-up.png)
+[INSERT IMAGE: a3b-packed-gate-up.png]
+ALT: Separate gate and up quantized projections versus load-time output-axis packing into one dispatch
+CAPTION: The output-axis pack is installed once and leaves every input-axis quantization group intact.
 
-*The output-axis pack is installed once and leaves every input-axis
-quantization group intact.*
 
 Affine quantization groups run along the input axis. The weights are
 concatenated along the output axis, so no quantization group is crossed, no
@@ -684,10 +670,10 @@ contract.
 The row-owned router described in the first-attempts section ships as a
 supporting kernel. It turns four post-softmax stages into one row-owned stage:
 
-![Separate post-softmax router stages versus one owner completing exact top-8 selection and normalization for a row](images/a3b-row-owned-router.png)
+[INSERT IMAGE: a3b-row-owned-router.png]
+ALT: Separate post-softmax router stages versus one owner completing exact top-8 selection and normalization for a row
+CAPTION: The historical construction A/B measured the mechanism, but the final stack does not assign it a clean isolated contribution.
 
-*The historical construction A/B measured the mechanism, but the final stack
-does not assign it a clean isolated contribution.*
 
 The historical construction A/B measured **+2.290% TPS**, but the final PR stack
 does not have a clean isolated contribution for this kernel. It is already
@@ -709,10 +695,10 @@ kernel shape will not preserve the route.
 The combine-tail kernel gives one output column ownership of the full
 eight-expert weighted reduction:
 
-![Broadcast temporary and expert reduction versus one output-column owner performing the ordered weighted combine](images/a3b-output-owned-combine.png)
+[INSERT IMAGE: a3b-output-owned-combine.png]
+ALT: Broadcast temporary and expert reduction versus one output-column owner performing the ordered weighted combine
+CAPTION: This supporting kernel removes a temporary and a launch; its isolated windows were too mixed for a clean current TPS claim.
 
-*This supporting kernel removes a temporary and a launch; its isolated windows
-were too mixed for a clean current TPS claim.*
 
 The historical construction A/B measured **+0.796% TPS** with exact output.
 Later isolated windows ranged from **−7.4% TPS** to **+0.15% TPS**, so I do not
