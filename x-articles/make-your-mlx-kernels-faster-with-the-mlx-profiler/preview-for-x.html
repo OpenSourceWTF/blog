@@ -1,0 +1,98 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>X preview — MLX Profiler</title>
+<style>
+body{max-width:740px;margin:0 auto;padding:40px 24px 120px;font:17px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',Georgia,serif;color:#111;background:#fff}
+h1{font-size:2em;line-height:1.2;margin:0 0 .3em}
+h2{font-size:1.5em;margin:1.8em 0 .5em;border-bottom:1px solid #eee;padding-bottom:.2em}
+a{color:#1d9bf0}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:#f4f4f4;padding:.1em .3em;border-radius:4px}
+pre{background:#f4f4f4;padding:14px;border-radius:8px;overflow-x:auto}
+pre code{background:none;padding:0}
+table{border-collapse:collapse;width:100%;margin:1em 0;font-size:.9em;display:block;overflow-x:auto}
+th,td{border:1px solid #ddd;padding:6px 10px;text-align:left;vertical-align:top}
+th{background:#fafafa}
+blockquote{border-left:3px solid #1d9bf0;margin:1em 0;padding:.4em 1em;background:#f7fbff;color:#333}
+figure{margin:1.8em 0;border:1px solid #eee;border-radius:10px;overflow:hidden}
+figure img{max-width:100%;display:block}
+figcaption{font-style:italic;color:#555;padding:8px 14px;font-size:.92em}
+.uploadtag{background:#111;color:#fff;font:600 12px/1.4 -apple-system,sans-serif;padding:7px 12px}
+.uploadtag code{background:#333;color:#7fd}
+.alttext{background:#fffbe6;color:#665500;font-size:.8em;padding:7px 12px;border-top:1px dashed #e5d98a}
+.alttext span{font-weight:700}
+.banner{background:#1d9bf0;color:#fff;padding:14px 18px;border-radius:10px;margin-bottom:30px;font:14px/1.5 -apple-system,sans-serif}
+</style>
+</head>
+<body>
+<div class="banner"><strong>How to use this page:</strong> Select all (⌘A) → Copy (⌘C) → paste into X's Article composer. Upload each PNG at its black image marker and paste the yellow ALT text into X's image-description field. Delete the guide bars after placing each image.</div>
+
+<h1>Make your MLX kernels faster with the MLX Profiler</h1>
+<p><strong>David Tai</strong>, OpenSource.WTF</p>
+
+<figure>
+  <div class="uploadtag">IMAGE 1 — upload this file in X: <code>a3b-profiler-performance-ladder-no-section-number.png</code></div>
+  <img src="../../posts/images/a3b-profiler-performance-ladder-no-section-number.png" alt="A profiler comparison showing fewer CPU dispatches after the A3B optimization">
+  <figcaption>The faster A3B path did slightly more GPU work. It won because the CPU had less work to send.</figcaption>
+  <div class="alttext"><span>ALT text (paste into X image-description):</span> A profiler comparison showing fewer CPU dispatches after the A3B optimization</div>
+</figure>
+
+<p>I built <a href="https://github.com/OpenSourceWTF/mlx-profiler">mlx-profiler</a> after a few “faster” kernels made Qwen3.6-35B-A3B slower.</p>
+<p>The kernels really were faster on the GPU. But they also added launches, temporary tensors, and CPU work. The full model lost speed.</p>
+<blockquote><strong>Do not optimize the kernel in isolation. Optimize the whole cycle.</strong></blockquote>
+
+<h2>1. Capture your workload</h2>
+<p>Build the instrumented MLX fork by following its <a href="https://github.com/OpenSourceWTF/mlx-profiler/blob/main/PROFILER.md#first-census-quickstart">quickstart</a>. Then run your normal Python workload with one environment variable:</p>
+<pre><code>MLX_DISPATCH_CENSUS="$PWD/baseline.jsonl" \
+  python your_workload.py</code></pre>
+<p>The profiler records every GPU dispatch, CPU command-buffer encoding, GPU timing, waits, and capture completeness. It does not add a GPU wait just to collect timing.</p>
+
+<h2>2. Open the visualizer</h2>
+<p>Run the <a href="https://github.com/OpenSourceWTF/metal-dispatch-viz">Metal Dispatch Workbench</a> locally:</p>
+<pre><code>git clone https://github.com/OpenSourceWTF/metal-dispatch-viz.git
+cd metal-dispatch-viz
+npm ci
+npm start -- --trace-dir /absolute/path/to/your/traces</code></pre>
+<p>Open <code>http://127.0.0.1:4173/</code>. Your files stay local. If you want to explore first, the <a href="https://mlx-profiler.opensource.wtf">public workbench</a> has real example runs.</p>
+
+<h2>3. Look for the expensive shape</h2>
+<figure>
+  <div class="uploadtag">IMAGE 2 — upload this file in X: <code>mlx-profiler-before-v230-k1-cycle-aligned.png</code></div>
+  <img src="../../posts/images/mlx-profiler-before-v230-k1-cycle-aligned.png" alt="MLX Profiler timeline before the A3B optimization, with a dense stream of CPU dispatches">
+  <figcaption>Before: 1,976 dispatches in one active A3B decode burst.</figcaption>
+  <div class="alttext"><span>ALT text (paste into X image-description):</span> MLX Profiler timeline before the A3B optimization, with a dense stream of CPU dispatches</div>
+</figure>
+<p>The timeline puts CPU encoding, GPU execution, command buffers, and waits on the same clock.</p>
+<ul>
+  <li><strong>Lots of tiny dispatches:</strong> one fused kernel may remove several launches.</li>
+  <li><strong>Gaps before GPU work:</strong> the GPU may be waiting for the CPU.</li>
+  <li><strong>Exposed host time:</strong> CPU work outside GPU execution can extend the cycle.</li>
+  <li><strong>Repeated kernel families:</strong> the sortable table makes noisy patterns easy to spot.</li>
+  <li><strong>Waits:</strong> separate allocator, scheduler, backpressure, and synchronization stalls.</li>
+</ul>
+<p>Drag over one representative cycle and switch to <strong>Analyze</strong>. The workbench recalculates the numbers for that exact range. <strong>Export for AI</strong> creates a local Markdown or JSON snapshot without sending anything to a model.</p>
+
+<h2>4. Make one change and compare again</h2>
+<p>Use the trace to form one small idea: fuse tiny operations, remove an intermediate tensor, reuse existing state, or remove a CPU/GPU round trip. Check correctness, benchmark without the profiler, then recapture with the same model, prompt, seed, and settings.</p>
+<figure>
+  <div class="uploadtag">IMAGE 3 — upload this file in X: <code>mlx-profiler-after-pr174-k1-cycle-aligned.png</code></div>
+  <img src="../../posts/images/mlx-profiler-after-pr174-k1-cycle-aligned.png" alt="MLX Profiler timeline after the A3B optimization, with fewer CPU dispatches and less exposed host time">
+  <figcaption>After: 1,459 dispatches and much less exposed CPU encoding.</figcaption>
+  <div class="alttext"><span>ALT text (paste into X image-description):</span> MLX Profiler timeline after the A3B optimization, with fewer CPU dispatches and less exposed host time</div>
+</figure>
+<table>
+  <thead><tr><th>One active decode burst</th><th>Before</th><th>After</th></tr></thead>
+  <tbody>
+    <tr><td>Dispatches</td><td>1,976</td><td>1,459</td></tr>
+    <tr><td>Host encode</td><td>6.895 ms</td><td>5.620 ms</td></tr>
+    <tr><td>Exposed host encode</td><td>635.91 µs</td><td>205.58 µs</td></tr>
+    <tr><td>GPU work</td><td>7.70 ms</td><td>7.78 ms</td></tr>
+  </tbody>
+</table>
+<p>GPU work went up slightly. The cycle still got faster because the CPU created a much shorter command stream.</p>
+<p>Capture. Look for gaps and launch noise. Make one change. Compare the same cycle.</p>
+<p><strong>Keep the changes that make the real workload faster.</strong></p>
+</body>
+</html>
