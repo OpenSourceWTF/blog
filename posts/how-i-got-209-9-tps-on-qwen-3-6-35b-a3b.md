@@ -2,7 +2,7 @@
 title: "How I got 209.9 tps on Qwen-3.6-35b-a3b"
 date: "2026-07-24"
 excerpt: "I set out to push Qwen3.6-35B-A3B past 200 tokens per second on an M5 Max. Faster GPU kernels kept losing, so I built the profiler MLX was missing and started removing the work around the GPU instead."
-image: "images/a3b-dispatch-investigation-thumbnail.png"
+image: "/content/blog/images/a3b-dispatch-investigation-thumbnail.png"
 tags: ["ai", "local-llm", "mixture-of-experts", "metal", "mlx", "apple-silicon", "inference", "optimization"]
 ---
 
