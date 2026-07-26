@@ -101,8 +101,8 @@ All three upload assets are PNG files below 5 MB.
 2. Confirm the header is not duplicated inline.
 3. Confirm all three image markers have been replaced in the listed order.
 4. Confirm every image has its supplied description and caption.
-5. Confirm the opening uses “I” for the investigation, explains why the first
-   working Hy3 installation was terrible, and mentions 48.04 tok/s once.
+5. Confirm the opening uses “I” for the investigation, explains that the first
+   Hy3 runtime required a second expert bank, and mentions 48.04 tok/s once.
 6. Confirm the 1,024-input, 256-output protocol and the 320-token q4 sweep stay
    in the q4 section rather than moving into the opening.
 7. Confirm the q4 HumanEvalPlus result remains 142/164 versus 143/164 for q8,

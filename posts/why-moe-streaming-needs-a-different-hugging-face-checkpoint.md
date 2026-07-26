@@ -1,7 +1,7 @@
 ---
 title: "Why MoE Streaming Needs a Different Kind of Hugging Face Checkpoint"
 date: "2026-07-25"
-excerpt: "I started streaming MoE experts from SSD to fit models that were too large for a Mac's memory budget. The runtime worked, but the installation was awful. Fixing it meant rebuilding the checkpoint around the router."
+excerpt: "I started streaming MoE experts from SSD to fit models that were too large for a Mac's memory budget. The first runtime worked, but each user still had to build a second expert bank. We fixed that in the published checkpoint."
 tags: ["ai", "local-llm", "mixture-of-experts", "mlx", "apple-silicon", "hugging-face", "open-source"]
 image: "/content/blog/images/moe-streaming-hero.png"
 ---
@@ -20,23 +20,14 @@ feed-forward weights for every token. An MoE router selects only a few experts
 at each sparse layer. If the other experts were idle, I did not see why they
 all had to remain in memory.
 
-The first SSD-streamed version of Hy3 proved the runtime idea, but it was a
-terrible thing to ask another person to install. I had to download the ordinary
-checkpoint, run a long conversion that rearranged every routed expert, and keep
-the resulting expert bank beside the source model. Inference used less memory;
-installation needed roughly twice the expert storage and enough temporary disk
-to build the second copy. I had built a pager and handed every user a
-manufacturing step.
+The first Hy3 version proved SSD streaming worked, but every user still had to
+convert the checkpoint into a second expert bank before the first prompt. We
+removed that step by making `(layer, expert)` a direct address in the published
+checkpoint: one complete record, already in the layout the runtime needs.
 
-That failure determined the rest of the system. The router could tell us which
-expert a token needed; the checkpoint still had to tell us where it was. When
-layer 31 selects expert 77, `(layer, expert)` has to resolve to one complete
-record in the layout the kernel expects—not several tensor slices the runtime
-must find and assemble during generation.
-
-So we built MoE streaming around that address: an expert-major binary bank, a
-manifest defining every record, and fixed paging slots. Machines with more
-memory can pin the same records in layer-sized islands.
+That decision shaped the system: an expert-major binary bank, a manifest
+defining every record, and fixed paging slots. Machines with more memory can
+pin the same records in layer-sized islands.
 
 The full-resident Hy3 configuration reached 48.04 decode tok/s. Smaller memory
 plans page the same published expert bank from SSD without asking the user to
