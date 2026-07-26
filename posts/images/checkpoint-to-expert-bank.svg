@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">From an ordinary model checkpoint to a streamable expert bank</title>
+  <desc id="desc">Ordinary component-major safetensors are extracted and verified into resident tensors, an authoritative manifest, and fixed expert-major records in experts.bin.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1118"/>
+      <stop offset="1" stop-color="#111b25"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1bb8d4"/>
+      <stop offset="1" stop-color="#69e5f0"/>
+    </linearGradient>
+    <linearGradient id="amber" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f0a743"/>
+      <stop offset="1" stop-color="#ffd18a"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000" flood-opacity=".35"/>
+    </filter>
+    <style>
+      .label{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:31px;font-weight:600;fill:#f2f7fa}
+      .sub{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:22px;font-weight:400;fill:#a7b5c2}
+      .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:20px;font-weight:600;fill:#d7e3ea}
+      .tiny{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:17px;font-weight:500;fill:#b7c3cd}
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <path d="M0 740C340 650 515 826 860 740s502-55 740-8v168H0z" fill="#0d2530" opacity=".42"/>
+
+  <text x="90" y="92" class="label">Ordinary Hugging Face checkpoint</text>
+  <text x="90" y="130" class="sub">Complete model, arranged for bulk loading</text>
+
+  <g filter="url(#shadow)">
+    <rect x="85" y="185" width="465" height="525" rx="24" fill="#17232f" stroke="#30404d" stroke-width="2"/>
+    <g transform="translate(120 225)">
+      <rect width="395" height="118" rx="14" fill="#202f3c" stroke="#496073"/>
+      <text x="24" y="37" class="mono">model-00001.safetensors</text>
+      <rect x="24" y="58" width="102" height="35" rx="8" fill="#194e5c"/>
+      <rect x="137" y="58" width="102" height="35" rx="8" fill="#725027"/>
+      <rect x="250" y="58" width="121" height="35" rx="8" fill="#304557"/>
+      <text x="48" y="82" class="tiny">gate</text>
+      <text x="170" y="82" class="tiny">scales</text>
+      <text x="283" y="82" class="tiny">attention</text>
+    </g>
+    <g transform="translate(120 368)">
+      <rect width="395" height="118" rx="14" fill="#202f3c" stroke="#496073"/>
+      <text x="24" y="37" class="mono">model-00002.safetensors</text>
+      <rect x="24" y="58" width="99" height="35" rx="8" fill="#194e5c"/>
+      <rect x="134" y="58" width="99" height="35" rx="8" fill="#194e5c"/>
+      <rect x="244" y="58" width="127" height="35" rx="8" fill="#725027"/>
+      <text x="59" y="82" class="tiny">up</text>
+      <text x="161" y="82" class="tiny">down</text>
+      <text x="274" y="82" class="tiny">biases</text>
+    </g>
+    <g transform="translate(120 511)">
+      <rect width="395" height="150" rx="14" fill="#202f3c" stroke="#496073"/>
+      <text x="24" y="37" class="mono">model-00003.safetensors</text>
+      <rect x="24" y="58" width="347" height="35" rx="8" fill="#304557"/>
+      <rect x="24" y="104" width="165" height="25" rx="7" fill="#194e5c"/>
+      <rect x="200" y="104" width="171" height="25" rx="7" fill="#725027"/>
+      <text x="136" y="82" class="tiny">embeddings + norms</text>
+      <text x="61" y="123" class="tiny">expert pieces</text>
+      <text x="239" y="123" class="tiny">more scales</text>
+    </g>
+  </g>
+
+  <path d="M595 445h190" stroke="url(#cyan)" stroke-width="7"/>
+  <text x="626" y="397" class="label" font-size="27">Extract</text>
+  <text x="626" y="430" class="sub">verify + align</text>
+
+  <text x="830" y="92" class="label">Streamable MTPLX artifact</text>
+  <text x="830" y="130" class="sub">One expert ID becomes one bounded record read</text>
+
+  <g filter="url(#shadow)">
+    <rect x="825" y="185" width="690" height="525" rx="24" fill="#17232f" stroke="#30404d" stroke-width="2"/>
+    <rect x="865" y="225" width="290" height="145" rx="17" fill="#20313f" stroke="#507085"/>
+    <text x="895" y="269" class="mono">resident-*.safetensors</text>
+    <text x="895" y="309" class="tiny">attention · routers · norms</text>
+    <text x="895" y="339" class="tiny">embeddings · shared weights</text>
+
+    <rect x="1185" y="225" width="290" height="145" rx="17" fill="#2e281f" stroke="#80613a"/>
+    <text x="1215" y="269" class="mono">expert-manifest.json</text>
+    <text x="1215" y="309" class="tiny">revision · shapes · offsets</text>
+    <text x="1215" y="339" class="tiny">sizes · layout · digests</text>
+
+    <text x="865" y="429" class="mono">experts.bin</text>
+    <rect x="865" y="457" width="610" height="168" rx="16" fill="#101820" stroke="#476271" stroke-width="2"/>
+    <g transform="translate(885 478)">
+      <rect width="132" height="126" rx="10" fill="#184b58" stroke="#53d7e5"/>
+      <rect x="144" width="132" height="126" rx="10" fill="#1b5662" stroke="#53d7e5"/>
+      <rect x="288" width="132" height="126" rx="10" fill="#694a26" stroke="#f0b35b"/>
+      <rect x="432" width="132" height="126" rx="10" fill="#263744" stroke="#52697a"/>
+      <text x="17" y="47" class="mono">L01 E000</text>
+      <text x="161" y="47" class="mono">L01 E001</text>
+      <text x="305" y="47" class="mono">L01 E002</text>
+      <text x="472" y="47" class="mono">…</text>
+      <text x="18" y="82" class="tiny">gate · up</text>
+      <text x="18" y="106" class="tiny">down · meta</text>
+      <text x="162" y="82" class="tiny">gate · up</text>
+      <text x="162" y="106" class="tiny">down · meta</text>
+      <text x="306" y="82" class="tiny">gate · up</text>
+      <text x="306" y="106" class="tiny">down · meta</text>
+    </g>
+  </g>
+  <text x="800" y="812" text-anchor="middle" class="sub">The runtime downloads the final layout. The user does not rebuild it locally.</text>
+</svg>

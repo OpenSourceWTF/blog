@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">How islands and paged expert slots execute a routed MoE layer</title>
+  <desc id="desc">The resident router selects expert IDs. An island executes from a whole resident layer; a paged layer uses slot hits or checked SSD reads into fixed slots before combining in original router order.</desc>
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1118"/>
+      <stop offset="1" stop-color="#131d27"/>
+    </linearGradient>
+    <filter id="shadow2" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity=".36"/>
+    </filter>
+    <style>
+      .h{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:34px;font-weight:700;fill:#f3f7fa}
+      .label{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:26px;font-weight:600;fill:#eef5f8}
+      .sub{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:20px;font-weight:400;fill:#aab8c4}
+      .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:18px;font-weight:600;fill:#dce7ed}
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg2)"/>
+  <text x="800" y="73" text-anchor="middle" class="h">One router, two installed memory routes</text>
+  <text x="800" y="112" text-anchor="middle" class="sub">The model's selected expert IDs remain authoritative in both cases</text>
+
+  <g filter="url(#shadow2)">
+    <rect x="75" y="315" width="260" height="190" rx="26" fill="#1a2d38" stroke="#4bcbd9" stroke-width="2"/>
+    <text x="205" y="367" text-anchor="middle" class="label">Resident router</text>
+    <g transform="translate(111 399)">
+      <rect width="42" height="42" rx="9" fill="#285766"/><text x="21" y="28" text-anchor="middle" class="mono">8</text>
+      <rect x="52" width="42" height="42" rx="9" fill="#285766"/><text x="73" y="28" text-anchor="middle" class="mono">31</text>
+      <rect x="104" width="42" height="42" rx="9" fill="#704d29"/><text x="125" y="28" text-anchor="middle" class="mono">77</text>
+      <rect x="156" width="42" height="42" rx="9" fill="#285766"/><text x="177" y="28" text-anchor="middle" class="mono">…</text>
+    </g>
+    <text x="205" y="474" text-anchor="middle" class="sub">IDs + routing weights</text>
+  </g>
+
+  <path d="M335 410H410" fill="none" stroke="#71dce8" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="410" cy="410" r="7" fill="#71dce8"/>
+  <path d="M410 410C458 410 458 280 493 280" fill="none" stroke="#71dce8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M497 280l-20-12v24z" fill="#71dce8"/>
+  <path d="M410 410C458 410 458 622 493 622" fill="none" stroke="#71dce8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M497 622l-20-12v24z" fill="#71dce8"/>
+
+  <g filter="url(#shadow2)">
+    <rect x="505" y="155" width="550" height="250" rx="26" fill="#17343b" stroke="#4bcbd9" stroke-width="2"/>
+    <text x="550" y="205" class="label">Island layer</text>
+    <text x="550" y="238" class="sub">Every expert for this layer is already resident</text>
+    <g transform="translate(552 273)">
+      <rect width="74" height="74" rx="12" fill="#246271"/>
+      <rect x="86" width="74" height="74" rx="12" fill="#246271"/>
+      <rect x="172" width="74" height="74" rx="12" fill="#8a5b2b"/>
+      <rect x="258" width="74" height="74" rx="12" fill="#246271"/>
+      <rect x="344" width="74" height="74" rx="12" fill="#246271"/>
+      <text x="37" y="46" text-anchor="middle" class="mono">E0</text>
+      <text x="123" y="46" text-anchor="middle" class="mono">E1</text>
+      <text x="209" y="46" text-anchor="middle" class="mono">E2</text>
+      <text x="295" y="46" text-anchor="middle" class="mono">…</text>
+      <text x="381" y="46" text-anchor="middle" class="mono">E191</text>
+    </g>
+    <text x="780" y="382" text-anchor="middle" class="sub">No expert-bank read on this layer</text>
+  </g>
+
+  <g filter="url(#shadow2)">
+    <rect x="505" y="465" width="550" height="315" rx="26" fill="#252a31" stroke="#6c7b87" stroke-width="2"/>
+    <text x="550" y="515" class="label">Paged layer</text>
+    <text x="550" y="548" class="sub">A fixed slot bank serves hits and bounds misses</text>
+    <rect x="550" y="582" width="205" height="142" rx="18" fill="#17343b" stroke="#4bcbd9"/>
+    <text x="653" y="619" text-anchor="middle" class="label">Slot hit</text>
+    <text x="653" y="654" text-anchor="middle" class="sub">use current</text>
+    <text x="653" y="682" text-anchor="middle" class="sub">generation</text>
+    <rect x="795" y="582" width="215" height="142" rx="18" fill="#34291f" stroke="#d59548"/>
+    <text x="903" y="619" text-anchor="middle" class="label">Slot miss</text>
+    <text x="903" y="654" text-anchor="middle" class="sub">checked read into</text>
+    <text x="903" y="682" text-anchor="middle" class="sub">an unpinned slot</text>
+  </g>
+
+  <g filter="url(#shadow2)">
+    <rect x="1140" y="487" width="350" height="180" rx="24" fill="#2e281f" stroke="#d59548" stroke-width="2"/>
+    <text x="1315" y="534" text-anchor="middle" class="label">Expert bank on SSD</text>
+    <g transform="translate(1190 571)">
+      <rect width="68" height="51" rx="8" fill="#6b4927"/>
+      <rect x="78" width="68" height="51" rx="8" fill="#6b4927"/>
+      <rect x="156" width="68" height="51" rx="8" fill="#966130"/>
+      <rect x="234" width="68" height="51" rx="8" fill="#6b4927"/>
+      <text x="34" y="32" text-anchor="middle" class="mono">E0</text>
+      <text x="112" y="32" text-anchor="middle" class="mono">E1</text>
+      <text x="190" y="32" text-anchor="middle" class="mono">E2</text>
+      <text x="268" y="32" text-anchor="middle" class="mono">…</text>
+    </g>
+  </g>
+  <path d="M1140 575H1095Q1075 575 1075 595V633Q1075 653 1055 653H1022" fill="none" stroke="#f1ad5a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M1016 653l20-12v24z" fill="#f1ad5a"/>
+  <text x="1104" y="554" text-anchor="middle" class="sub">one record</text>
+
+  <g filter="url(#shadow2)">
+    <rect x="1140" y="205" width="350" height="170" rx="24" fill="#1c2c35" stroke="#647b89" stroke-width="2"/>
+    <text x="1315" y="254" text-anchor="middle" class="label">Execute + combine</text>
+    <text x="1315" y="292" text-anchor="middle" class="sub">restore router order</text>
+    <text x="1315" y="325" text-anchor="middle" class="sub">then continue to next layer</text>
+  </g>
+  <path d="M1055 280H1128" fill="none" stroke="#71dce8" stroke-width="6" stroke-linecap="round"/>
+  <path d="M1134 280l-20-12v24z" fill="#71dce8"/>
+  <path d="M1055 652H1086Q1112 652 1112 626V345Q1112 325 1128 325" fill="none" stroke="#f1ad5a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M1134 325l-20-12v24z" fill="#f1ad5a"/>
+
+  <text x="800" y="846" text-anchor="middle" class="sub">Capacity, layout, and eligible kernels are validated once before this route is installed.</text>
+</svg>
