@@ -8,113 +8,30 @@ unified-memory processor into a bounded resident pool
 CAPTION: The router chooses the experts. The checkpoint determines whether
 each one is already resident or has to come from SSD.
 
-**48.04 tokens per second on Hy3, from a checkpoint that does not require the
-user to rebuild its expert bank.**
-
-That is the flagship result. It used the published oQ2e expert bank, all 79
-routed layers resident as islands, a q4/gs64 resident trunk requantized at
-startup, BF16 KV, and MTP depth 1 on an M5 Max with 128 GB of unified memory.
-The q4 benchmark plan had a 96 GiB process ceiling. Across three
-1,024-input/256-output runs, it averaged 48.04 tok/s. The matched AR control
-averaged 41.36 tok/s.
-
-The quality result matters just as much. On the complete 164-task
-HumanEvalPlus suite, the q4 resident trunk passed 142 tasks. The q8 control
-passed 143. McNemar's exact two-sided test was p=1.0. On this code evaluation,
-startup requantization did not produce a measurable quality loss.
-
-The 48.04 figure is the intended Hy3 performance result in this article. It is
-a retained MTP runtime benchmark, not throughput from the current
-AR-only `mtplx serve` route.
-
-Getting that configuration onto another machine was the harder part. At
-OpenSource.WTF, I had been trying to run mixture-of-experts models whose full
-working set would not fit within the Mac's memory budget. My first plan was to
-keep some weights on SSD and bring them into memory only when the model needed
-them.
-
-That requires two fast lookups: which weights does the token need next, and
-where are those weights on disk? The MoE router answers the first. The
-checkpoint has to answer the second. Most checkpoints are laid out for loading
-the whole model, not for fetching one expert while generation is running.
-
-## Why MoE models can leave most experts on SSD
-
-A dense transformer uses nearly every feed-forward weight for every token. If
-those weights live on SSD, storage latency follows the model through every
-layer. There is little work to skip.
-
-An MoE model replaces some of those dense feed-forward blocks with a collection
-of expert networks and a router. The router scores the experts, selects a small
-subset, and combines their outputs. Experts that were not selected do no work
-for that token.
-
-Tencent describes Hy3 as a
-[295-billion-parameter model with 21 billion active parameters](https://huggingface.co/tencent/Hy3#model-introduction).
-It has 192 routed experts and selects eight in each sparse layer. A token uses
-only a fraction of the expert weights stored in the checkpoint.
-
-Routing is still sequential. Layer 32 cannot select its experts until layer 31
-has produced its output:
-
-```text
-attention -> router -> selected expert IDs -> expert MLPs -> combine -> next layer
-```
-
-The router remains authoritative. Streaming only changes where the selected
-expert weights come from. A selected expert may already be resident, or the
-runtime may have to read it from SSD into a fixed memory slot before its MLP
-can run.
-
-The current Hy3 package is about 97.6 GB, including an 80,518,053,888-byte
-expert bank. Streaming does not make that download smaller. It avoids keeping
-the bank, the resident model, the KV cache, and the rest of the process in
-unified memory at the same time.
-
-## How a checkpoint lays tensors out on disk
-
-A Hugging Face checkpoint serializes named tensors into byte ranges. Safetensors
-stores each tensor's dtype, shape, and offsets in an inspectable header, followed
-by the tensor data. Large checkpoints split those tensors across shards and use
-an index to map names to files.
-
-But a container can describe every tensor correctly and still arrange the
-bytes poorly for streaming. A normal load is asking:
-
-> Which files contain all the tensors needed to construct this model?
-
-An SSD-streamed MoE layer is asking:
-
-> The router just selected expert 77 in layer 31. Where is its complete record,
-> and can I read it directly into the slot Metal will use?
-
-In the source checkpoints we began with, one expert's gate, up, and down
-projections—along with their quantization scales and biases—lived in separate
-component-major regions. A single logical expert was assembled from slices of
-several tensors, sometimes spread across checkpoint shards.
-
-A bulk loader can assemble those regions once while constructing the model. A
-streaming runtime would repeat several positional reads and assembly work every
-time the router selected that expert.
-
-## Our first Hy3 setup kept two copies of every routed expert
-
 The first SSD-streamed version of Hy3 worked. It was also a terrible thing to
 ask another person to install.
 
-You first downloaded the ordinary checkpoint. Then you ran a local conversion
-that extracted and rearranged all of its routed experts into a second copy the
-runtime could stream. The conversion was long, and the machine needed enough
-temporary storage for both layouts. The result used less memory during
-inference while asking for roughly twice the expert storage before the first
-prompt.
+You downloaded the normal checkpoint, built a second copy of its routed experts
+in a layout the runtime could read efficiently, and kept both. The model used
+less memory, but the installation needed roughly twice the expert storage and a
+long local conversion step before the first prompt. It proved the runtime idea.
+It did not make a product.
 
-It proved that paging worked, but not that the model was distributable. To fix
-that, `(layer, expert)` had to resolve to one bounded record in the layout the
-kernel expects, without loading unrelated experts or rebuilding the record in
-temporary buffers.
+That experience changed how we thought about model distribution. The hard part
+of SSD streaming was not opening a large file from Python. It was making
+`(layer, expert)` a real storage address.
 
-We now publish the models in that form:
+When a mixture-of-experts router selects expert 77 in layer 31, the runtime
+needs the complete record for that expert, in the layout its kernel expects,
+without loading unrelated experts and without assembling pieces in temporary
+buffers. An ordinary checkpoint does not promise that property. A streamable
+checkpoint has to be built around it.
+
+We now publish that layout directly. The full-resident Hy3 configuration
+reached 48.04 decode tok/s; smaller memory plans can page the same expert bank
+from SSD without asking the user to rebuild the model first.
+
+The two prepacked models are:
 
 - [`OpensourceWTF/Hy3-oQ2e-MTPLX-streaming`](https://huggingface.co/OpensourceWTF/Hy3-oQ2e-MTPLX-streaming)
 - [`OpensourceWTF/GLM-5.2-t158-MTPLX-streaming`](https://huggingface.co/OpensourceWTF/GLM-5.2-t158-MTPLX-streaming)
@@ -122,7 +39,63 @@ We now publish the models in that form:
 They pair with [`OpenSourceWTF/mtplx-moe`](https://github.com/OpenSourceWTF/mtplx-moe),
 our fork of [Youssof Altoukhi's MTPLX](https://github.com/youssofal/MTPLX).
 
-## Packing each expert into one record
+## A model can fit on disk without fitting in memory
+
+Hy3 is a useful example because the gap is obvious. Tencent describes it as a
+[295-billion-parameter model with 21 billion active parameters](https://huggingface.co/tencent/Hy3#model-introduction).
+It has 192 routed experts and activates eight of them in each sparse layer.
+
+The total parameter count tells you how much capacity exists. The active count
+tells you how much of that capacity a token uses. The difference is the opening
+for streaming.
+
+A dense model needs nearly every feed-forward weight on nearly every token.
+Leave those weights on SSD and storage latency follows the model through every
+layer. An MoE layer first runs a small resident router. The router scores its
+experts and selects a few. The other experts in that layer do no work for that
+token.
+
+This does not mean the whole expert path can be predicted at the start of a
+token. Layer 32 cannot route until layer 31 has produced its output. The valid
+order is still:
+
+```text
+attention -> router -> selected expert IDs -> expert MLPs -> combine -> next layer
+```
+
+What changes is where the selected expert MLP weights come from. Some may
+already be resident. A missing one can come from a fixed slot backed by SSD.
+The router remains authoritative either way.
+
+For the current Hy3 package, the full tested snapshot is about 97.6 GB of
+logical files. Its routed expert bank, `experts.bin`, is 80,518,053,888 bytes.
+That is large for a download. It is a different problem from requiring all of
+those bytes, plus the rest of the process, to stay in unified memory at once.
+
+## Why ordinary safetensors are the wrong shape
+
+Safetensors is not the problem. It is a good, inspectable container with a
+bounded header and explicit tensor offsets. The problem is the physical
+question the container was arranged to answer.
+
+A normal model load asks:
+
+> Where are all the tensors needed to construct this model?
+
+An SSD-streamed MoE layer asks:
+
+> Where are all the components for expert 77, and can I place them directly
+> into the slot Metal will read?
+
+In the source checkpoints we started from, an expert's gate, up, and down
+projections—and their quantization scales and biases—lived in separate
+component-major tensor regions. One logical expert was a set of slices across
+those regions, sometimes across checkpoint shards. Reading it directly meant
+several positional reads, assembly work, and more opportunities to create
+temporary memory.
+
+That layout is fine when the loader will materialize every tensor. It is a poor
+random-access database for a router emitting expert IDs one layer at a time.
 
 [INSERT IMAGE: checkpoint-to-expert-bank.png]
 ALT: Ordinary component-major safetensors are extracted into resident shards,
@@ -149,7 +122,7 @@ a second copy of the original expert safetensors. `mtplx pull` or
 `mtplx serve --download` retrieves the layout the runtime consumes. No source
 checkpoint or local repack is required.
 
-## The manifest tells MTPLX what each record contains
+## The manifest is part of the model
 
 If a streamed record is wrong, the model might not fail until the router
 selects it. MTPLX therefore checks the model key, record geometry, codec,
@@ -164,7 +137,7 @@ Once the artifact, shapes, memory plan, and kernel route have passed that
 construction boundary, the production path executes them directly. It does not
 re-prove invariant model metadata on every token.
 
-## From a router decision to a safe memory slot
+## What the runtime does with an expert record
 
 The model keeps its router and common trunk resident. At each routed layer, the
 router produces expert IDs and weights in the model's original order. The
@@ -199,7 +172,7 @@ On Apple Silicon, CPU and GPU work share unified memory. The native reader can
 fill stable MLX buffers that Metal will consume. A miss still pays SSD latency,
 but it does not add a separate CPU-to-VRAM copy.
 
-## Hy3 profiles decide what stays in memory
+## Islands and paging are a memory dial
 
 Hy3 ships three promoted memory profiles:
 
@@ -227,7 +200,7 @@ the all-island geometry, then requantizes the resident trunk to q4 and runs MTP
 at depth 1. The appendix retains the separate profile measurements without
 mixing their protocols into the main result.
 
-## Building the 48 tok/s Hy3 configuration
+## The q4 setting changes the resident trunk, not the expert bank
 
 The published checkpoint keeps its resident trunk in q8. To test q4 without
 publishing another checkpoint or touching the 80.5 GB expert bank, we used a
@@ -249,6 +222,21 @@ dynamic during generation. Once construction finishes, the installed route
 uses the q4 arrays directly; there is no per-token precision check or q8
 fallback in the measured path.
 
+Our retained flagship receipt used an M5 Max with 128 GB of unified memory,
+all 79 expert layers pinned as islands, BF16 KV, a 1,024-token real-code
+context, 256 generated tokens, and MTP depth 1. Across three runs it averaged
+**48.04 decode tokens per second**, against **41.36 tok/s** for its matched AR
+control.
+
+We also ran the complete 164-task HumanEvalPlus suite. The q4 resident-trunk
+configuration passed **142/164 (86.6%)**. The q8 control passed **143/164
+(87.2%)**. McNemar's exact two-sided test was `p=1.0`; this comparison did not
+show a directional quality difference.
+
+This is a full-resident result. It measures the q4 trunk setting and the top end
+of the island system, not SSD-miss speed. It is also a retained MTP benchmark,
+not throughput from the current AR-only `mtplx serve` route.
+
 We also ran the q4 overlay with two smaller memory plans. To keep that
 comparison controlled, all three plans used the same 320-token code prompt,
 generated 256 tokens, and retained three repetitions in both AR and MTP depth
@@ -263,8 +251,8 @@ generated 256 tokens, and retained three repetitions in both AR and MTP depth
 These are the requant benchmark plans, not the q8 promoted profile names in
 the preceding section. The controlled sweep shows the cost of paging as the
 memory budget shrinks. Its full-resident mean is 47.65 tok/s because it used
-the shared 320-token protocol. The longer 1,024-token arm of record remains the
-48.04 tok/s result from the opening.
+the shared 320-token protocol. The longer 1,024-token arm above remains the
+48.04 tok/s result.
 
 The appendix includes every repetition from both q4 benchmarks and the
 complete HumanEvalPlus receipts.

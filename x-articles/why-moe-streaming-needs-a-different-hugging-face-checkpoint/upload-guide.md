@@ -68,7 +68,7 @@ Official references:
 ### 2. Expert-major checkpoint
 
 - File: `checkpoint-to-expert-bank.png`
-- Placement: “Packing each expert into one record”
+- Placement: “Why ordinary safetensors are the wrong shape”
 - Alt: Ordinary component-major safetensors are extracted into resident
   shards, an authoritative manifest, and fixed expert-major records in
   experts.bin
@@ -78,7 +78,7 @@ Official references:
 ### 3. Islands and paging
 
 - File: `islands-and-paging.png`
-- Placement: “From a router decision to a safe memory slot”
+- Placement: “What the runtime does with an expert record”
 - Alt: A resident router sends selected expert IDs either to a fully resident
   island or through hits and checked misses in a fixed paged slot bank
 - Caption: Islands keep a whole routed layer resident. Paged layers use bounded
@@ -101,10 +101,10 @@ All three upload assets are PNG files below 5 MB.
 2. Confirm the header is not duplicated inline.
 3. Confirm all three image markers have been replaced in the listed order.
 4. Confirm every image has its supplied description and caption.
-5. Confirm the opening still says 48.04 tok/s and identifies the 1,024-input,
-   256-output, three-run protocol.
-6. Confirm the 320-token q4 sweep remains separate from the 48.04 tok/s
-   flagship.
+5. Confirm the opening tells the failed-installation story, explains why
+   `(layer, expert)` must be a storage address, and mentions 48.04 tok/s once.
+6. Confirm the 1,024-input, 256-output protocol and the 320-token q4 sweep stay
+   in the q4 section rather than moving into the opening.
 7. Confirm the q4 HumanEvalPlus result remains 142/164 versus 143/164 for q8,
    with McNemar p=1.0.
 8. Confirm the GLM result still says 5.33 tok/s AR and 5.93 tok/s MTP D3 and
