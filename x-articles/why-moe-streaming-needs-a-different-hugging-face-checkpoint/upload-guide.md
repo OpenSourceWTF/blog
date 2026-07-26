@@ -7,6 +7,8 @@ X publication.
 
 - Article source:
   `x-articles/why-moe-streaming-needs-a-different-hugging-face-checkpoint/article.md`
+- Easy-copy page:
+  `x-articles/why-moe-streaming-needs-a-different-hugging-face-checkpoint/preview-for-x.html`
 - Exact title:
   `Why MoE Streaming Needs a Different Kind of Hugging Face Checkpoint`
 - Author line: `David Tai, OpenSource.WTF`
@@ -32,27 +34,23 @@ Official references:
 - [Photo formats and size limits](https://help.x.com/en/using-x/posting-gifs-and-pictures)
 - [Writing image descriptions](https://help.x.com/en/using-x/picture-descriptions)
 
-## Compose the Article
+## Easy-copy workflow
 
-1. Sign in at [x.com](https://x.com) and open the Articles composer.
-2. Enter the exact title above.
-3. Add `moe-streaming-hero.png` as the header image. Treat the first image
-   marker as this placement; do not insert a duplicate inline copy if X already
-   displays the header.
-4. Paste the body from `article.md`, omitting the leading `#` title because the
-   composer has a separate title field.
-5. At every `[INSERT IMAGE: ...]` marker:
-   - remove the marker, `ALT:`, and `CAPTION:` control lines from the visible
-     article;
-   - insert the named PNG;
-   - copy the `ALT:` text into X's image-description field;
-   - add the `CAPTION:` text as an italic paragraph below the image.
-6. Apply the source hierarchy:
-   - `##` becomes a heading;
-   - `###` becomes a subheading;
-   - preserve bold, italics, block quotes, lists, code, tables, and links where
-     the composer supports them.
-7. Preview the article at desktop and mobile widths before publishing.
+1. Open `preview-for-x.html` in a browser.
+2. Click **Copy title** and paste it into X's title field.
+3. Add `moe-streaming-hero.png` as the X Article header.
+4. Click **Copy article body** and paste it into the composer.
+5. Delete the first black image guide. It marks the header image and should not
+   become a duplicate inline image.
+6. Replace the other two black image guides with their named PNG files.
+7. Paste each yellow ALT line into the corresponding image-description field.
+8. Keep the italic caption beneath each inline image, then delete the remaining
+   black and yellow guide bars.
+9. Preview the article at desktop and mobile widths before publishing.
+
+If browser clipboard permissions block the button, click inside the white
+article panel and use `⌘A`, then `⌘C`. `article.md` remains the source of truth
+and the manual fallback.
 
 ## Image placement order
 
