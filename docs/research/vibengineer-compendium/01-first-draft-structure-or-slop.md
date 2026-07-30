@@ -251,37 +251,44 @@ You can add a framework later. By then you will know which problem you need it t
 
 ## Review: what process are you actually running?
 
-Before you install a framework, build a memory system, or add another page of instructions, stop and answer these:
+The thesis was that a proportionate system process separates maintainable progress from slopware. It does that by preserving intent, validating execution, saving hard-earned lessons, and producing evidence.
 
-1. **What failure are you trying to prevent?**
-   Is the agent solving the wrong problem, forgetting decisions, skipping tests, duplicating code, or claiming work is done when it is not? If you cannot name the failure, you cannot choose a proportionate process.
+That sounds reasonable in theory. Here is what it means when you apply it to the process you are actually using.
 
-2. **Where does the intent live?**
-   Can a person and a new agent session find the same task, decision, and example in the repository? Or does the real explanation only exist in a chat you are afraid to close?
+1. **Is it consistent?**
+   Does similar work go through similar checks, or does the process change depending on what the agent happens to remember that day?
 
-3. **Which parts are instructions and which parts are enforcement?**
-   What are you merely asking the model to remember? What will actually run, block, fail, or require approval?
+2. **Is it predictable?**
+   Do you know what artifact, decision, or check comes next? Can you tell when the agent has skipped a step, or do you only discover the process after it happens?
 
-4. **Could a fresh session resume the work correctly?**
-   Not continue producing code. Resume the same intention, with the same constraints, knowing what was tried, what failed, and what still needs proof.
+3. **Is it resumable?**
+   Could a fresh session recover the same intention, constraints, failed attempts, and remaining work? Not merely continue producing code. Resume the actual work.
 
-5. **What does “done” mean?**
-   Is there an observable result, a command, a test, a review, or a deployed version? Or does done mean the agent wrote a convincing summary?
+4. **Is it auditable?**
+   Where do the important decisions and hard-earned lessons live? Can people and agents read the same linked source, or does the real explanation only exist in a chat you are afraid to close?
 
-6. **How many sources of truth did you create?**
-   Are people and agents reading the same linked documents? Can every index, graph, summary, or embedding be deleted and rebuilt from those files?
+5. **Is it correctable?**
+   Where can you stop, inspect, reject, or redirect the work? Which controls are instructions the model might follow, and which ones can actually block a bad action?
 
-7. **Will you maintain this process when you are tired and in a hurry?**
-   A beautiful workflow you bypass under pressure is not your process. The shortcut you take every Friday afternoon is your process.
+6. **Is it proportionate?**
+   What failure are you trying to prevent, and is the process sized for that failure? A typo does not need an architecture review. An authentication rewrite probably needs more than a good prompt.
 
-8. **Is your process minimal, or is it merely missing things?**
-   Minimal means every part earns its place. Missing means you find out what mattered after the agent has already shipped the mistake.
+7. **Does it produce evidence?**
+   What does “done” mean? Is there an observable result, a command, a test, a review, or a deployed version? Or does done mean the agent wrote a convincing summary?
 
-The goal is not to make your agent behave like a tiny employee trapped inside a software-development bureaucracy. The goal is to make the work legible enough that you can tell what happened, correct it, resume it, and prove it.
+Then ask one final question:
+
+**Will you maintain this process when you are tired and in a hurry?**
+
+A beautiful workflow you bypass under pressure is not your process. The shortcut you take every Friday afternoon is your process.
+
+The goal is not to make your agent behave like a tiny employee trapped inside a software-development bureaucracy. The goal is to make the work consistent enough to trust, predictable enough to follow, resumable after the context is gone, auditable when something looks wrong, correctable before the mistake spreads, proportionate to the risk, and supported by actual evidence.
 
 If your current setup can preserve intent, control the dangerous actions, save the hard-earned lessons, and produce evidence, it is probably enough. Keep it small.
 
-If it cannot, adding a smarter model is not going to fix the process around it. It will just produce the same slopware faster and with a better explanation.
+That is the thesis restated after the review: the model gives you forward progress. The process is what makes that progress maintainable.
+
+If your process cannot do these things, adding a smarter model is not going to fix it. It will just produce the same slopware faster and with a better explanation.
 
 And even a very well-behaved agent can still put the same business rule in three different modules.
 
