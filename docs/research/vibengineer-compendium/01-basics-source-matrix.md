@@ -17,6 +17,16 @@ Status values:
 | GitHub Spec Kit | [GitHub Spec Kit documentation](https://github.github.com/spec-kit/) and [repository](https://github.com/github/spec-kit) | Spec → Plan → Tasks → Implement produces structured artifacts and supports resumable workflows | Inspect current templates, analysis/checklist stages, brownfield behavior, and workflow automation | reviewing |
 | OpenSpec | [Fission-AI/OpenSpec](https://github.com/Fission-AI/OpenSpec) | Lighter, iterative, brownfield-oriented spec workflow | Inspect current artifact-guided workflow and compare repository footprint and update flow | reviewing |
 
+### Captured workflow findings
+
+| System | Documented mechanics captured for drafting | Important limitation | Status |
+|---|---|---|---|
+| Superpowers | Connected design, plan, TDD, subagent review, verification, and branch-finishing skills; broad harness support | Current source inspection does not establish measured productivity or correctness gains | captured |
+| Superpowers Optimized | Adds premise checking, task-size routing, durable readable state, verification extensions, and Codex hook wiring | Local fork is more complex, less portable, and not independently benchmarked | captured |
+| BMAD Method | Scale-adaptive PRD/architecture/story/build workflow; durable artifact status; specialist roles and adversarial review | Many controls are instruction-level; artifacts require active human stewardship | captured |
+| GitHub Spec Kit | Spec → Plan → Tasks → Implement plus optional clarification, analysis, convergence, workflow gates, and persisted run state | Process and artifact cost may be disproportionate for small work; outcome claims need experiments | captured |
+| OpenSpec | Brownfield-oriented explore/propose → apply → archive flow; delta specs and task state | Verification and human review are advisory unless backed by external repository gates | captured |
+
 ## Recommendation profiles
 
 These are hypotheses to validate, not final endorsements.
@@ -72,7 +82,7 @@ For every final recommendation, capture:
 | Hierarchical agent-curated memory | [ByteRover](https://arxiv.org/abs/2604.01599) | Can curated retrieval remain derived, attributable, and rebuildable from readable sources? | reviewing |
 | Derived memory graphs or DAGs | [EMG-RAG](https://aclanthology.org/2024.emnlp-main.281/) | When does relationship traversal help more than linked files, and can every node retain source provenance? | queued |
 | Agent-memory landscape | [Memory in the Age of AI Agents](https://openreview.net/pdf/180d26775b5edf368b1aea4bcf724855acc29c14.pdf) | What memory types, update policies, and evaluation methods are relevant to coding work? | reviewing |
-| Memory security | Prompt-injection and memory-poisoning research | How can persistent memory preserve hostile or stale instructions across sessions? | queued |
+| Memory security | [Bad Memory](https://arxiv.org/abs/2607.14611), [Hidden in Memory](https://arxiv.org/abs/2605.15338), and memory-poisoning research | How can persistent memory preserve hostile or stale instructions across sessions? | captured |
 
 ## Planned hands-on evidence
 
