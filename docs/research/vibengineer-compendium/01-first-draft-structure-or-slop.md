@@ -95,49 +95,34 @@ The research for this article looked at the current source and documentation for
 
 This is not a benchmark result. We have not yet run the same task through every system enough times to make productivity claims. What we can do now is compare their actual workflow mechanics and make conditional recommendations.
 
-### You want disciplined engineering by default: Superpowers
+For quick reference, here they are from most to least operational complexity:
 
-[Superpowers](https://github.com/obra/superpowers) is the cleanest fit when your priority is a connected design, planning, TDD, review, and completion process across several coding-agent harnesses.
+| Complexity | Approach | What you maintain |
+|---|---|---|
+| 5 — Highest here | Superpowers Optimized | Expanded skill routing, task sizing, project memory, review gates, and harness-specific hooks |
+| 4 — High | BMAD | Product, architecture, story, implementation, role, and review artifacts |
+| 3 — Moderate–high | GitHub Spec Kit | Governed spec/plan/task artifacts, templates, integrations, optional workflow gates |
+| 2 — Moderate | Superpowers | Connected design, planning, TDD, review, and completion skills |
+| 1 — Light | OpenSpec | Change proposals, delta specs, tasks, archived intent |
+| 0 — Minimal | No full framework | Project instructions, a task statement, tests, Git |
 
-Choose it when the failure you most want to prevent is an agent jumping straight from an idea into an implementation and declaring victory without evidence.
+This ordering measures setup, artifact volume, workflow gates, and maintenance. It does not measure quality. Spec Kit can be configured into something much heavier, BMAD has lighter routes, and Superpowers Optimized has explicit micro and lightweight paths. Complexity is what you must understand and maintain, not what every individual task necessarily runs.
 
-You pay for it with checkpoints and ceremony. That is reasonable for behavior changes and risky work. It is silly for a typo.
+The detailed guide below still starts at the light end and adds machinery. That keeps the recommendation honest: use the simplest process that controls the failure you actually have.
 
-Do not choose the full workflow if your team will routinely bypass it. A small repository-native process that people actually follow is better than an impressive skills folder everybody learns to ignore.
+### Complexity 0 — You want to fix a small thing: use no full framework
 
-### You want the same discipline with local routing and memory: Superpowers Optimized
+For small, reversible work, the correct framework may be:
 
-Superpowers Optimized is our local adaptation of that model. It adds premise checks, task sizing, explicit fast paths, project maps, task state, known-issue memory, stronger verification rules, and Codex-specific hooks.
+- One concise `AGENTS.md` or equivalent
+- One short issue or task statement
+- One targeted verification command
+- Git
+- A pull request
 
-Choose it when work spans sessions, the repository is expensive to rediscover, and you want the workflow to distinguish a trivial change from a full architecture task.
+That is still a system process. It is simply small enough to fit the risk.
 
-You pay for it with more moving parts, more local policy, and the maintenance cost of a fork. It is also less portable than upstream Superpowers.
-
-This is not a neutral recommendation. It reflects the way I prefer to work. The comparison still needs matched-task experiments before I claim it produces better outcomes.
-
-### You want explicit product-to-QA handoffs: BMAD
-
-The current [BMAD Method](https://github.com/bmad-code-org/BMAD-METHOD) is built around artifact-mediated work: PRDs, architecture, epics, stories, implementation state, and review.
-
-Choose it when several sessions, agents, or people need to carry a product intention through architecture and implementation without each one inventing its own version.
-
-It is especially interesting for ambiguous or cross-system work. Its current workflow also has lighter routes for bounded changes, which matters because running the full product ceremony for everything would be unbearable.
-
-You pay for it with artifact stewardship. If nobody owns the freshness of the PRD, architecture, stories, and state, the system becomes a highly organized source of stale instructions.
-
-Do not mistake BMAD's roles or review prompts for deterministic governance. Its workflow is useful context discipline; CI, permissions, and human accountability still have to exist outside it.
-
-### You want governed, portable specification workflows: GitHub Spec Kit
-
-[GitHub Spec Kit](https://github.github.com/spec-kit/) currently provides the most explicit general artifact chain: Spec → Plan → Tasks → Implement, with optional clarification, analysis, convergence, workflow gates, and persisted workflow state.
-
-Choose it when your priority is durable intent, portability across coding agents, organizational templates, and workflows that can pause and resume at explicit gates.
-
-You pay for it with more artifacts and governance machinery. That can be a strength for a team and a nuisance for a small patch.
-
-Do not choose it merely because “spec-driven” sounds responsible. Choose it when someone will review the artifacts and when the cost of process drift is greater than the cost of maintaining them.
-
-### You want lighter brownfield change specs: OpenSpec
+### Complexity 1 — You want lighter brownfield change specs: OpenSpec
 
 [OpenSpec](https://github.com/Fission-AI/OpenSpec) is the better starting hypothesis when you want a smaller, iterative change proposal inside an existing repository.
 
@@ -149,17 +134,47 @@ You pay for it with more reliance on human review and external gates. Its verifi
 
 Do not choose it alone for high-risk work that requires mandatory approvals, privileged-command controls, or release gates. Pair it with the repository's real tests, CI, code ownership, and security process.
 
-### You want to fix a small thing: maybe use none of them
+### Complexity 2 — You want disciplined engineering by default: Superpowers
 
-For small, reversible work, the correct framework may be:
+[Superpowers](https://github.com/obra/superpowers) is the cleanest fit when your priority is a connected design, planning, TDD, review, and completion process across several coding-agent harnesses.
 
-- One concise `AGENTS.md` or equivalent
-- One short issue or task statement
-- One targeted verification command
-- Git
-- A pull request
+Choose it when the failure you most want to prevent is an agent jumping straight from an idea into an implementation and declaring victory without evidence.
 
-That is still a system process. It is simply small enough to fit the risk.
+You pay for it with checkpoints and ceremony. That is reasonable for behavior changes and risky work. It is silly for a typo.
+
+Do not choose the full workflow if your team will routinely bypass it. A small repository-native process that people actually follow is better than an impressive skills folder everybody learns to ignore.
+
+### Complexity 3 — You want governed, portable specification workflows: GitHub Spec Kit
+
+[GitHub Spec Kit](https://github.github.com/spec-kit/) currently provides the most explicit general artifact chain: Spec → Plan → Tasks → Implement, with optional clarification, analysis, convergence, workflow gates, and persisted workflow state.
+
+Choose it when your priority is durable intent, portability across coding agents, organizational templates, and workflows that can pause and resume at explicit gates.
+
+You pay for it with more artifacts and governance machinery. That can be a strength for a team and a nuisance for a small patch.
+
+Do not choose it merely because “spec-driven” sounds responsible. Choose it when someone will review the artifacts and when the cost of process drift is greater than the cost of maintaining them.
+
+### Complexity 4 — You want explicit product-to-QA handoffs: BMAD
+
+The current [BMAD Method](https://github.com/bmad-code-org/BMAD-METHOD) is built around artifact-mediated work: PRDs, architecture, epics, stories, implementation state, and review.
+
+Choose it when several sessions, agents, or people need to carry a product intention through architecture and implementation without each one inventing its own version.
+
+It is especially interesting for ambiguous or cross-system work. Its current workflow also has lighter routes for bounded changes, which matters because running the full product ceremony for everything would be unbearable.
+
+You pay for it with artifact stewardship. If nobody owns the freshness of the PRD, architecture, stories, and state, the system becomes a highly organized source of stale instructions.
+
+Do not mistake BMAD's roles or review prompts for deterministic governance. Its workflow is useful context discipline; CI, permissions, and human accountability still have to exist outside it.
+
+### Complexity 5 — You want the same discipline with local routing and memory: Superpowers Optimized
+
+Superpowers Optimized is our local adaptation of that model. It adds premise checks, task sizing, explicit fast paths, project maps, task state, known-issue memory, stronger verification rules, and Codex-specific hooks.
+
+Choose it when work spans sessions, the repository is expensive to rediscover, and you want the workflow to distinguish a trivial change from a full architecture task.
+
+You pay for it with more moving parts, more local policy, and the maintenance cost of a fork. It is also less portable than upstream Superpowers.
+
+This is not a neutral recommendation. It reflects the way I prefer to work. The comparison still needs matched-task experiments before I claim it produces better outcomes.
 
 ## Project memory: keep one readable truth
 

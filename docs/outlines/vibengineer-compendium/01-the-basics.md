@@ -131,6 +131,17 @@ Working recommendation hypotheses to test:
 
 These are research hypotheses, not conclusions. The final recommendations must follow the evidence and hands-on evaluation.
 
+Add a quick-reference complexity ladder before the recommendations, ordered most to least complex. Define complexity as setup, artifact volume, number of gates, and ongoing maintenance—not quality:
+
+1. Superpowers Optimized
+2. BMAD
+3. GitHub Spec Kit
+4. Superpowers
+5. OpenSpec
+6. No full framework
+
+Call out configurable exceptions: Spec Kit can become heavier, BMAD has lighter routes, and Superpowers Optimized has micro and lightweight paths.
+
 ### 7. Project memory: one readable truth
 
 Use a memory escalation ladder:

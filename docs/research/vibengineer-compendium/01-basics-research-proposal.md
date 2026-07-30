@@ -110,6 +110,17 @@ For each profile, determine:
 - Conditions that make it a bad fit
 - A smaller and a heavier alternative
 
+Present the resulting systems from most to least operational complexity for quick reference. Score complexity using:
+
+- Setup and installation
+- Number and size of maintained artifacts
+- Number of mandatory or expected gates
+- State and resumption machinery
+- Hook and tool integration
+- Ongoing upgrade and policy maintenance
+
+Complexity is not a quality score. Record fast paths and configurable heavier modes separately.
+
 Initial recommendation hypotheses:
 
 | User priority | Candidate recommendation | Hypothesis to test |
