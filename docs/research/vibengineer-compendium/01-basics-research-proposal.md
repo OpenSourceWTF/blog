@@ -110,7 +110,7 @@ For each profile, determine:
 - Conditions that make it a bad fit
 - A smaller and a heavier alternative
 
-Present the resulting systems from most to least operational complexity for quick reference. Score complexity using:
+Present the resulting systems from least to most operational complexity for quick reference. The table should function as the section TL;DR and link every system to its long-form recommendation. Score complexity using:
 
 - Setup and installation
 - Number and size of maintained artifacts

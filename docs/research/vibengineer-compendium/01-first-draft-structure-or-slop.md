@@ -6,25 +6,25 @@ status: first-draft
 draft: true
 ---
 
-# The Vibengineer Compendium, Part I: Structure or Slop
+# The Vibengineer Compendium, Part I: Structure or Slopware
 
-Coding agents are extremely good at forward motion.
+Coding agents are extremely good at forward progress.
 
-Ask for a feature and you get files. Ask for a fix and you get a patch. Ask whether everything works and, quite often, you get a confident paragraph explaining that it does.
+Ask for a feature and you get code. Ask for a fix and you get a patch. Ask whether everything works and, quite often, you get a confident paragraph explaining that it does.
 
-This is useful. It is also how you end up with slop.
+This is why we are all here. It is also how you end up with slopware.
 
-I do not just mean ugly code. Ugly code can be honest. I mean plausible work with no stable intention behind it: two implementations of the same rule, tests that only agree with the code that was just generated, a plan that disappeared three context windows ago, and a completion claim nobody can reproduce.
+Why do I mean by slopware?  I do not just mean ugly code. Ugly code can work quite well. I mean plausible code with no stable intention behind it: Duplicate implementations of the same piece of code, tests that only agree with the code that was just generated, a plan that got lost three context windows ago, and code that you were told was done that was never actually checked.
 
 The basic problem is that agents can produce code faster than we can preserve intent, inspect consequences, and keep a coherent path forward.
 
 My thesis for this series is simple:
 
-> A coding agent needs a proportionate system process. That process preserves intent, constrains execution, records state, and demands evidence. Without it, you are mostly asking a probability machine to keep its own story straight.
+> A coding agent needs a proportionate system process analogous to our standard software engineering processes and best practices. That process preserves intent, validates execution, saves hard earned lessons, and results in actual progress towards your goals. Without some basic structure, you are mostly asking a very convincing machine to keep its own story straight.
 
-The short version: give your agent some structure or it is going to produce slop.
+The short version: give your agent some structure or it is going to produce slopware.
 
-## The process is part of the product
+## The process separates a shippable, maintainable product from slopware
 
 A useful agent process should give you at least seven things:
 
@@ -38,9 +38,9 @@ A useful agent process should give you at least seven things:
 
 None of these require a huge framework. A short spec, one failing test, a Git branch, and a saved state note may be enough.
 
-The point is not maximum process. The point is enough process to control the failure you are worried about.
+The point is not maximum process. The point is the minimum amount of process to control the failure you are worried about.
 
-That gives us a better way to look at the current agent workflow frameworks. Do not ask which one has the most commands. Ask what kind of failure it is designed to prevent, and whether you are willing to pay its operating cost.
+This lense gives us a better way to look at the current agent process frameworks around. Don't ask which one has the most features, ask what kind of failure it is designed to prevent, and whether you are willing to pay its operating cost.
 
 ## Specs, tests, plans, and roles are different controls
 
@@ -95,148 +95,163 @@ The research for this article looked at the current source and documentation for
 
 This is not a benchmark result. We have not yet run the same task through every system enough times to make productivity claims. What we can do now is compare their actual workflow mechanics and make conditional recommendations.
 
-For quick reference, here they are from most to least operational complexity:
+For quick reference, here they are from least to most operational complexity:
 
-| Complexity | Approach | What you maintain |
-|---|---|---|
-| 5 — Highest here | Superpowers Optimized | Expanded skill routing, task sizing, project memory, review gates, and harness-specific hooks |
-| 4 — High | BMAD | Product, architecture, story, implementation, role, and review artifacts |
-| 3 — Moderate–high | GitHub Spec Kit | Governed spec/plan/task artifacts, templates, integrations, optional workflow gates |
-| 2 — Moderate | Superpowers | Connected design, planning, TDD, review, and completion skills |
-| 1 — Light | OpenSpec | Change proposals, delta specs, tasks, archived intent |
-| 0 — Minimal | No full framework | Project instructions, a task statement, tests, Git |
+| Complexity | Approach | Choose it when | You pay for it with |
+|---|---|---|---|
+| 0 — Minimal | [No full framework](#complexity-no-framework) | The change is small, reversible, and well understood | You must supply the judgment and remember to run the real checks |
+| 1 — Light | [OpenSpec](#complexity-openspec) | You want a lightweight, resumable change spec in an existing repository | Human review and external test, CI, and security gates |
+| 2 — Moderate | [Superpowers](#complexity-superpowers) | You want portable design, planning, TDD, review, and completion discipline | More checkpoints than small work needs |
+| 3 — Moderate–high | [GitHub Spec Kit](#complexity-spec-kit) | You want governed, portable spec-to-implementation artifacts and workflow gates | More artifacts, templates, integration, and governance maintenance |
+| 4 — High | [BMAD](#complexity-bmad) | Product, architecture, development, and QA need explicit artifact handoffs | Ongoing stewardship of many roles, documents, and state transitions |
+| 5 — Highest here | [Superpowers Optimized](#complexity-superpowers-optimized) | You want proportional routing, deep verification, persistent project state, and Codex hooks | The largest local policy surface, fork maintenance, and lower portability |
 
 This ordering measures setup, artifact volume, workflow gates, and maintenance. It does not measure quality. Spec Kit can be configured into something much heavier, BMAD has lighter routes, and Superpowers Optimized has explicit micro and lightweight paths. Complexity is what you must understand and maintain, not what every individual task necessarily runs.
 
-The detailed guide below still starts at the light end and adds machinery. That keeps the recommendation honest: use the simplest process that controls the failure you actually have.
+The table is the TL;DR. The linked sections explain the trade-offs and stopping conditions behind each recommendation.
 
+<a id="complexity-no-framework"></a>
 ### Complexity 0 — You want to fix a small thing: use no full framework
 
-For small, reversible work, the correct framework may be:
+You do not need a framework for everything. In fact, I think starting with a framework is probably backwards.
 
-- One concise `AGENTS.md` or equivalent
-- One short issue or task statement
-- One targeted verification command
+If the change is small, reversible, and you understand it, you probably need:
+
+- A short `AGENTS.md` or equivalent
+- A clear task
+- A test or some other way to prove it worked
 - Git
-- A pull request
+- A pull request if other people depend on the code
 
-That is still a system process. It is simply small enough to fit the risk.
+That is still a process. It is just a process small enough to fit the problem.
 
+The downside is that you are the framework. You have to remember when the change stopped being small. You have to notice when the agent wandered off. You have to actually run the checks.
+
+<a id="complexity-openspec"></a>
 ### Complexity 1 — You want lighter brownfield change specs: OpenSpec
 
-[OpenSpec](https://github.com/Fission-AI/OpenSpec) is the better starting hypothesis when you want a smaller, iterative change proposal inside an existing repository.
+[OpenSpec](https://github.com/Fission-AI/OpenSpec) is where I would start if you mostly work in existing code and want a little more structure without turning every change into a project.
 
-Its core model is closer to explore/propose → apply → archive, with delta specifications accumulating around actual changes rather than requiring the whole existing system to be documented first.
+The basic flow is explore and propose, apply the change, then archive what changed. It builds small delta specs around the work instead of making you describe the entire system before you are allowed to touch it.
 
-Choose it when the failure you want to prevent is chat-only development losing the intent of a contained brownfield change.
+This solves a very normal problem: you discussed the change with an agent, the context got compacted or restarted, and now the reason for the code only exists in your head.
 
-You pay for it with more reliance on human review and external gates. Its verification is useful, but it is not a non-bypassable compliance system.
+The tradeoff is that OpenSpec mostly gives you readable intent and a workflow. It does not magically become your test suite, security policy, or CI. You still need those.
 
-Do not choose it alone for high-risk work that requires mandatory approvals, privileged-command controls, or release gates. Pair it with the repository's real tests, CI, code ownership, and security process.
+I would not use it by itself for security-sensitive or high-risk work. Use it with the real gates already in your repository.
 
+<a id="complexity-superpowers"></a>
 ### Complexity 2 — You want disciplined engineering by default: Superpowers
 
-[Superpowers](https://github.com/obra/superpowers) is the cleanest fit when your priority is a connected design, planning, TDD, review, and completion process across several coding-agent harnesses.
+[Superpowers](https://github.com/obra/superpowers) is for when you want the agent to follow a recognizable engineering process by default.
 
-Choose it when the failure you most want to prevent is an agent jumping straight from an idea into an implementation and declaring victory without evidence.
+It connects design, planning, TDD, implementation, review, verification, and finally what to do with the branch. It also works across a lot of different coding agents, which matters if you do not want your whole process tied to one tool.
 
-You pay for it with checkpoints and ceremony. That is reasonable for behavior changes and risky work. It is silly for a typo.
+The problem it is trying to prevent is the agent hearing an idea, immediately writing code, and then congratulating itself.
 
-Do not choose the full workflow if your team will routinely bypass it. A small repository-native process that people actually follow is better than an impressive skills folder everybody learns to ignore.
+You pay for that with checkpoints. For a real feature, that is probably good. For a typo, it is ridiculous.
 
+If you or your team will bypass it every time you are in a hurry, do not install the whole thing. A small process you actually follow is better than a sophisticated one you train yourself to ignore.
+
+<a id="complexity-spec-kit"></a>
 ### Complexity 3 — You want governed, portable specification workflows: GitHub Spec Kit
 
-[GitHub Spec Kit](https://github.github.com/spec-kit/) currently provides the most explicit general artifact chain: Spec → Plan → Tasks → Implement, with optional clarification, analysis, convergence, workflow gates, and persisted workflow state.
+[GitHub Spec Kit](https://github.github.com/spec-kit/) is for when the spec itself needs to be a real part of the development system.
 
-Choose it when your priority is durable intent, portability across coding agents, organizational templates, and workflows that can pause and resume at explicit gates.
+Its basic chain is easy to understand:
 
-You pay for it with more artifacts and governance machinery. That can be a strength for a team and a nuisance for a small patch.
+> Spec → Plan → Tasks → Implement
 
-Do not choose it merely because “spec-driven” sounds responsible. Choose it when someone will review the artifacts and when the cost of process drift is greater than the cost of maintaining them.
+Around that it can add clarification, consistency analysis, convergence, workflow gates, templates, and saved workflow state. It also supports a lot of coding agents.
 
+This makes sense when several people need the intent to survive across tools and sessions, or when an organization wants the same planning artifacts every time.
+
+The cost is obvious: there is more stuff. More templates, more artifacts, more integration, more things that can go stale.
+
+Do not pick it because “spec-driven” sounds responsible. Pick it because somebody will actually review and maintain the specs.
+
+<a id="complexity-bmad"></a>
 ### Complexity 4 — You want explicit product-to-QA handoffs: BMAD
 
-The current [BMAD Method](https://github.com/bmad-code-org/BMAD-METHOD) is built around artifact-mediated work: PRDs, architecture, epics, stories, implementation state, and review.
+The [BMAD Method](https://github.com/bmad-code-org/BMAD-METHOD) goes further into roles and handoffs. Product requirements become architecture, architecture becomes epics and stories, stories become implementation work, and the work goes through review.
 
-Choose it when several sessions, agents, or people need to carry a product intention through architecture and implementation without each one inventing its own version.
+I would look at BMAD when the work is large enough that product, architecture, development, and QA are actually different concerns. It is also useful when multiple agents or sessions need to carry the same intention without each one inventing its own interpretation.
 
-It is especially interesting for ambiguous or cross-system work. Its current workflow also has lighter routes for bounded changes, which matters because running the full product ceremony for everything would be unbearable.
+It does have lighter paths. This is important because doing the full PRD-to-QA dance for a five-line change would make everyone hate it.
 
-You pay for it with artifact stewardship. If nobody owns the freshness of the PRD, architecture, stories, and state, the system becomes a highly organized source of stale instructions.
+The real cost is maintaining the artifacts. If nobody owns the PRD, architecture, stories, and implementation state, you have not preserved context. You have built a very organized collection of stale instructions.
 
-Do not mistake BMAD's roles or review prompts for deterministic governance. Its workflow is useful context discipline; CI, permissions, and human accountability still have to exist outside it.
+Also, roles are not enforcement. A QA agent is not CI. A security review prompt is not a security boundary. You still need the boring real systems underneath it.
 
+<a id="complexity-superpowers-optimized"></a>
 ### Complexity 5 — You want the same discipline with local routing and memory: Superpowers Optimized
 
-Superpowers Optimized is our local adaptation of that model. It adds premise checks, task sizing, explicit fast paths, project maps, task state, known-issue memory, stronger verification rules, and Codex-specific hooks.
+Superpowers Optimized is the system I am using while writing this article. It is our local adaptation of Superpowers and it has opinions.
 
-Choose it when work spans sessions, the repository is expensive to rediscover, and you want the workflow to distinguish a trivial change from a full architecture task.
+It adds premise checks, task sizing, fast paths, project maps, saved state, known issues, stronger verification, parallel review, and Codex-specific hooks. The idea is that the process should be strict when the work is dangerous and get out of the way when it is not.
 
-You pay for it with more moving parts, more local policy, and the maintenance cost of a fork. It is also less portable than upstream Superpowers.
+I would use it when work regularly spans sessions, rediscovering the repository is expensive, and false completion claims cost real time.
 
-This is not a neutral recommendation. It reflects the way I prefer to work. The comparison still needs matched-task experiments before I claim it produces better outcomes.
+It is also the most complicated option here. There are more skills, more routing rules, more state, more hooks, and a fork to maintain. It is less portable than upstream Superpowers.
+
+This is obviously not a neutral review. I built my workflow around these ideas because they match the problems I have. We still need to run the same tasks through each system before I claim it produces better results.
 
 ## Project memory: keep one readable truth
 
-There is a temptation to treat agent memory as a database problem immediately.
+Agent memory is where people have a tendency to lose their minds.
 
-Index the repository. Embed the documents. Extract a knowledge graph. Build a DAG. Generate summaries for the humans and separate summaries for the machines.
+Index everything. Embed everything. Extract a knowledge graph. Build a DAG. Generate one set of docs for people and another set for the machine.
 
-Now you have two documentation systems.
+Now you have two sources of truth.
 
-One of them will drift.
+They will drift.
 
 My recommendation is:
 
 > Keep one linked, human-readable set of project documents. Let humans and agents read the same files. Any RAG index, graph, DAG, embedding store, or generated summary should be a disposable view derived from that source.
 
-Start with:
+Start with boring files:
 
-1. Repository instructions
-2. A project map linking to the real files
-3. A decision log with small examples
+1. Repository instructions that link to the real files
+2. A project map
+3. A decision log with examples
 4. Current task state
-5. Known issues and their verified fixes
-6. Ordinary lexical search
+5. Known issues and the fixes that actually worked
+6. Normal text search
 
-Only escalate when you can name a decision the agent consistently fails to recover from those files.
+These are readable by you, your team, and the LLM. They can be reviewed in a pull request. They can link to each other. Git tells you when they changed.
 
-This is not anti-graph. Recent work such as [ByteRover](https://arxiv.org/abs/2604.01599) is interesting partly because it uses hierarchical, human-readable Markdown with explicit provenance and progressive retrieval rather than requiring an external vector or graph database. Its reported benchmark results are about long-term memory benchmarks, not proof that every coding repository needs its architecture.
+The agents are already designed to grep clusters of human-readable files. Give them good files before you build another memory system.
 
-Readable files have boring advantages:
+This is not an anti-RAG or anti-graph position. [ByteRover](https://arxiv.org/abs/2604.01599), for example, is interesting because it uses human-readable Markdown, provenance, and progressive retrieval without requiring a separate vector or graph database.
 
-- People can review them in the same pull request as the code.
-- Examples explain conventions better than compressed metadata.
-- Links express relationships without creating another authority.
-- Git shows who changed the memory and why.
-- `rg` works.
-- If a derived index breaks, the knowledge still exists.
+If your repository gets large enough that normal search stops working, build an index. Just build it *from* the readable source. The index should be something you can delete and regenerate without losing any actual knowledge.
 
-The danger is not only drift. Persistent memory is also a security boundary. Recent research on [prompt injection through agent memory](https://arxiv.org/abs/2607.14611) found that malicious instructions already planted in memory files can affect current and later sessions. Memory deserves provenance, review, and the same suspicion as executable configuration.
+There is also a security problem here. Recent [research on prompt injection through agent memory](https://arxiv.org/abs/2607.14611) found that malicious instructions already planted in memory files can affect current and future sessions. Memory is not harmless documentation. It changes what the agent does later.
 
 Before adding a memory service, ask:
 
 > What can the agent not recover from Git, the current task file, a linked project map, and normal search?
 
-If you do not have a concrete answer, you probably do not need RAG. You need better docs.
+If you do not have a specific answer, you probably do not need RAG. You need better docs.
 
 ## The minimum viable setup
 
-If you want a starting point without adopting a framework:
+If you want somewhere to start, start here:
 
-- Keep one short repository instruction file.
-- Record the task before changing code.
-- For non-trivial work, write down the intended behavior and the evidence that will prove it.
-- Run targeted checks while iterating.
-- Save a short state file before stopping unfinished work.
-- Keep durable decisions in linked, human-readable documents.
-- Use Git as the history.
-- Add hooks only for checks that really must run.
-- Require fresh evidence before accepting “done.”
+- One short repository instruction file
+- A written task before the agent changes code
+- Intended behavior and evidence for anything non-trivial
+- Targeted checks while you work
+- A short state file before stopping unfinished work
+- Linked, human-readable docs for durable decisions
+- Git for history
+- Hooks only when something really must happen
+- Fresh evidence before accepting “done”
 
-That is enough to turn an agent from an extremely enthusiastic typist into something you can engineer with.
+You can add a framework later. By then you will know which problem you need it to solve.
 
-It does not solve architecture. A beautiful process can still place the same business rule in three different modules.
+This still does not solve architecture. A very well-behaved agent can put the same business rule in three different modules.
 
 That is Part II: establish ownership and dominance before the code goes out of control.
 
@@ -244,4 +259,4 @@ That is Part II: establish ownership and dominance before the code goes out of c
 
 ## Draft evidence note
 
-This first draft is grounded in current official documentation and direct inspection of the installed Superpowers systems. The conditional recommendations are provisional. The matched feature, bug, refactor, interruption, and documentation-drift experiments in the research proposal have not yet been completed, so this draft does not claim measured productivity or correctness improvements.
+This first draft is based on current official documentation and direct inspection of the installed Superpowers systems. The recommendations are still provisional. We have not finished the matched feature, bug, refactor, interruption, and documentation-drift experiments, so I am not claiming measured productivity or correctness improvements yet.
