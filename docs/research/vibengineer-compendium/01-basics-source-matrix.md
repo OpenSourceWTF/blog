@@ -65,11 +65,12 @@ For every final recommendation, capture:
 
 | Approach | Source or implementation class | Question | Status |
 |---|---|---|---|
-| Versioned Markdown state | Repository instructions, project map, decisions, state, known issues | How much project state can be recovered with plain files and Git? | queued |
+| Linked human-readable authority | Repository instructions, project map, decisions, state, known issues, examples | How much project state can people and agents recover from one linked set of readable files and Git? | queued |
 | Lexical retrieval | `rg`, BM25, SQLite FTS | When does ordinary exact or lexical search stop being sufficient? | queued |
-| Vector retrieval | Repository RAG systems and retrieval literature | Does semantic retrieval improve correct recovery enough to justify indexing and staleness cost? | queued |
-| Hierarchical agent-curated memory | [ByteRover](https://arxiv.org/abs/2604.01599) | Does progressive retrieval avoid unnecessary LLM calls while preserving useful context? | reviewing |
-| Editable memory graphs | [EMG-RAG](https://aclanthology.org/2024.emnlp-main.281/) | When does explicit relationship traversal help more than flat retrieval? | queued |
+| Parallel human and machine docs | Independently edited Markdown plus structured summaries/indexes | How quickly do the two authorities drift, and which version does the agent trust? | queued |
+| Derived vector retrieval | Repository RAG systems and retrieval literature | Does semantic retrieval over the readable source improve recovery enough to justify indexing and staleness cost? | queued |
+| Hierarchical agent-curated memory | [ByteRover](https://arxiv.org/abs/2604.01599) | Can curated retrieval remain derived, attributable, and rebuildable from readable sources? | reviewing |
+| Derived memory graphs or DAGs | [EMG-RAG](https://aclanthology.org/2024.emnlp-main.281/) | When does relationship traversal help more than linked files, and can every node retain source provenance? | queued |
 | Agent-memory landscape | [Memory in the Age of AI Agents](https://openreview.net/pdf/180d26775b5edf368b1aea4bcf724855acc29c14.pdf) | What memory types, update policies, and evaluation methods are relevant to coding work? | reviewing |
 | Memory security | Prompt-injection and memory-poisoning research | How can persistent memory preserve hostile or stale instructions across sessions? | queued |
 
@@ -80,7 +81,9 @@ For every final recommendation, capture:
 | Feature task | Unstructured vs instructions vs spec/plan vs TDD vs full workflow | Acceptance, scope, corrections, artifacts, time | queued |
 | Bug task | Same five process levels | Root-cause accuracy, regression evidence, unnecessary edits | queued |
 | Refactor task | Same five process levels | Behavior preservation, duplication, architecture drift, review time | queued |
-| Interrupted task | No state vs Markdown state vs retrieval-backed state | Correct resumption, stale facts, reconstruction effort | queued |
+| Interrupted task | No state vs linked readable state vs retrieval-backed state | Correct resumption, stale facts, reconstruction effort | queued |
+| Documentation drift | One readable authority vs separately edited human and machine representations | Contradictions, time-to-drift, wrong-source retrieval, review cost | queued |
+| Derived-index rebuild | Readable authority plus disposable RAG/graph/DAG index | Provenance, rebuildability, knowledge loss after index deletion | queued |
 | Enforcement audit | Skill instruction vs hook vs CI gate | Whether skipped or failed checks actually block completion | queued |
 
 ## Immediate evidence gaps
@@ -92,3 +95,5 @@ For every final recommendation, capture:
 5. Repository-scale thresholds where lexical, vector, and graph retrieval separate.
 6. Security evidence covering executable skills, hooks, and persistent agent memory.
 7. One representative repository and task set for the matched experiment.
+8. Empirical evidence that dual human/machine documentation drifts or confuses coding agents.
+9. A representative linked-file cluster for testing direct agent search against derived retrieval.

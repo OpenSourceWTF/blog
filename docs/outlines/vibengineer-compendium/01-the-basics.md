@@ -131,24 +131,48 @@ Working recommendation hypotheses to test:
 
 These are research hypotheses, not conclusions. The final recommendations must follow the evidence and hands-on evaluation.
 
-### 7. Project memory: start boring
+### 7. Project memory: one readable truth
 
 Use a memory escalation ladder:
 
 1. Repository instructions
-2. Project map
-3. Decision log
-4. Current task state
-5. Known-issues file
+2. Human-readable project map with links to the relevant files
+3. Human-readable decision log with examples
+4. Human-readable current task state
+5. Human-readable known-issues file
 6. Lexical search across those artifacts
-7. Vector retrieval after ordinary search demonstrably fails
-8. Graph-assisted retrieval when relationship traversal is an actual requirement
+7. Derived vector retrieval after ordinary search demonstrably fails
+8. Derived graph or DAG navigation when relationship traversal is an actual requirement
+
+Default recommendation:
+
+> Keep one linked, human-readable set of project documents for both people and agents. Do not maintain a second machine-oriented copy of the same truth.
+
+The files should:
+
+- Use plain names and headings that ordinary search can find
+- Include small concrete examples where conventions are otherwise ambiguous
+- Link to related decisions, modules, plans, and known issues
+- Keep current state separate from durable project knowledge
+- Remain reviewable in the same pull request as the code they describe
+
+LLM coding agents are already built to inspect and search clusters of readable repository files. Give them better files before building a second documentation system.
+
+RAG, graphs, DAGs, or generated indexes may be useful as **derived navigation layers**. They should point back to the human-readable source and be rebuildable from it. They should not become an independently edited authority.
+
+Two parallel documentation systems create a synchronization problem:
+
+- Humans update the readable version but not the machine version
+- Automation updates the machine representation without preserving the human explanation
+- Retrieval surfaces stale or contradictory facts
+- The agent cannot tell which copy is authoritative
+- Reviewers cannot easily see that the derived memory has drifted
 
 Ask one hard question before adding RAG or a graph:
 
 > What decision could the agent not recover from Git, the current task file, a project map, and normal search?
 
-If we cannot answer it, the memory system is probably architecture cosplay.
+If we cannot answer it, the memory system is probably architecture cosplay. If we can answer it, derive the extra index from the readable source rather than asking people to maintain both.
 
 ### 8. The minimum viable vibengineering setup
 
@@ -175,7 +199,9 @@ Part II asks what happens when the process is sound but two modules both believe
 - **Same task, two runs:** an unstructured agent produces a plausible diff; a bounded workflow produces a spec, focused change, verification output, and resumable state.
 - **Priority-to-process decision tree:** start from user needs and risk, then route toward a framework or the no-framework setup.
 - **Recommendation cards:** “choose this when,” “you pay for it with,” and “do not choose this when.”
-- **Memory escalation ladder:** flat versioned files first, search second, RAG or graphs only after a measured retrieval failure.
+- **One-readable-truth diagram:** linked Markdown files as the authority, with optional search, RAG, graph, or DAG indexes shown as disposable derived views.
+- **Drift failure diagram:** human docs and machine docs fork, contradict each other, and send the agent toward different answers.
+- **Memory escalation ladder:** linked versioned files first, search second, derived RAG or graphs only after a measured retrieval failure.
 - **Minimum setup tree:** the smallest useful repository layout, with optional additions clearly marked.
 
 ## Claims requiring evidence
@@ -187,6 +213,9 @@ Part II asks what happens when the process is sound but two modules both believe
 - Does agentic TDD improve defect detection, or can it also inflate implementation-mirroring test suites?
 - What evidence supports persistent project state improving fresh-session resumption?
 - At what repository scale do lexical search, vector retrieval, or graph traversal produce measurably different outcomes?
+- How often do separately maintained human and machine documentation representations drift, and how does that affect agent accuracy?
+- Are linked human-readable file clusters retrieved reliably enough by current coding agents for ordinary repository work?
+- When a derived index exists, what provenance and rebuild checks keep the readable files authoritative?
 - What new prompt-injection or supply-chain risks arrive with third-party skills, hooks, and persistent memory?
 
 ## Non-goals
@@ -197,7 +226,7 @@ Part II asks what happens when the process is sound but two modules both believe
 - Not a full treatment of testing; Part IV owns test-suite quality.
 - Not a full treatment of architectural authority; Part II owns that.
 - Not a recommendation to install every workflow system discussed.
-- Not a claim that GraphRAG is useless—only that its cost needs a demonstrated retrieval problem.
+- Not a claim that GraphRAG or DAG navigation is useless—only that it should solve a demonstrated retrieval problem and remain derived from one readable source.
 
 ## Series connection
 
@@ -211,4 +240,5 @@ Part II asks what happens when the process is sound but two modules both believe
 - Which one task should be used for the matched workflow comparison?
 - Should Superpowers Optimized be described as a separate system or explicitly as a local adaptation of upstream Superpowers?
 - How much implementation detail about hooks belongs here before it distracts from the control-stack distinction?
-- Can the memory section stay useful without turning into a survey article of its own?
+- Which real repository example best demonstrates linked human-readable docs working as agent memory?
+- What is the smallest reproducible drift example for parallel human and machine documentation?

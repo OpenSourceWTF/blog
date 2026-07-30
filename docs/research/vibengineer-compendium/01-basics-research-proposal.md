@@ -42,6 +42,8 @@ The final thesis must be updated if the comparative review or experiments do not
 8. Which process elements remain useful across different coding-agent products?
 9. Which user priorities meaningfully change the recommendation?
 10. When is a small hand-built process better than adopting a full framework?
+11. Does maintaining separate human-readable and machine-oriented documentation measurably increase drift or contradictory retrieval?
+12. Can linked human-readable repository files provide sufficient agent memory without a second authoritative representation?
 
 ## Research streams
 
@@ -180,15 +182,28 @@ Record:
 
 The experiment is exploratory. It should not claim statistical significance from a small number of runs.
 
-### Stream E: Project memory escalation test
+### Stream E: Project memory and single-source test
+
+Working recommendation:
+
+> Maintain one linked, human-readable source of project truth. Let people and agents read the same files. Treat RAG indexes, graphs, DAGs, embeddings, and generated summaries as rebuildable navigation layers rather than separately edited documentation.
+
+Reasons to test:
+
+- Parallel representations can drift.
+- Agents may retrieve the stale representation without recognizing the conflict.
+- Human reviewers can inspect readable files and examples more easily than opaque indexes.
+- Current coding agents can already search repository file clusters using ordinary text and filename cues.
+- Derived retrieval may still become useful when repository size or relationship complexity defeats direct search.
 
 Compare:
 
 1. Raw conversation resumption
-2. Versioned Markdown state
-3. Markdown plus lexical search
-4. Vector retrieval
-5. Graph-assisted retrieval
+2. One linked set of versioned human-readable documents
+3. The same documents plus lexical search
+4. Separately maintained human and machine documentation
+5. Human-readable authority plus a derived vector index
+6. Human-readable authority plus a derived graph or DAG index
 
 Use the same recovery questions across every approach:
 
@@ -208,10 +223,14 @@ Measure:
 - Retrieval latency
 - Setup and maintenance cost
 - Whether the retrieved memory changes the final task outcome
+- Contradictions between representations
+- Time until separately maintained representations drift
+- Whether every retrieved fact points back to a reviewable source
+- Whether a derived index can be deleted and rebuilt without losing project knowledge
 
 Default hypothesis:
 
-> Small, versioned, deliberately maintained files plus ordinary search will cover most project-memory needs. Retrieval or graphs should be added only after a measured failure.
+> One linked set of human-readable, versioned files plus ordinary search will cover most project-memory needs. Separate machine-oriented documentation will create more drift than value. Retrieval, graphs, or DAGs should be derived from the readable source and added only after a measured search failure.
 
 This hypothesis must remain falsifiable.
 
@@ -252,6 +271,7 @@ Community sources can identify questions and failure modes but should not establ
 - Control-stack guarantee table
 - Matched-task experiment protocol and logs
 - Memory escalation experiment and decision rule
+- Single-source documentation recommendation with a drift experiment
 - Small security and trust checklist
 - Revised Part I outline
 - Draft-ready evidence notes
@@ -264,6 +284,7 @@ Community sources can identify questions and failure modes but should not establ
 - Part III owns expansion, analysis, and reduction of accumulated code.
 - Part IV owns detailed test-suite quality.
 - The memory section gets a decision rule, not a complete GraphRAG tutorial.
+- Human-readable files remain the proposed authority; machine indexes must be derived and rebuildable.
 - The workflow review should explain trade-offs rather than crown a winner.
 - Recommendations must be conditional on user priorities, failure costs, and willingness to maintain the process.
 
@@ -277,4 +298,5 @@ Research is sufficient to begin drafting when:
 - The control-stack taxonomy distinguishes soft guidance from enforced gates.
 - The resumption experiment has a written protocol.
 - The memory section can state when plain files are sufficient and what evidence justifies escalation.
+- The research either supports the single-readable-source recommendation or records the evidence that forces it to be revised.
 - Security risks are represented without taking over the article.
