@@ -255,26 +255,26 @@ The thesis was that a proportionate system process separates maintainable progre
 
 That sounds reasonable in theory. Here is what it means when you apply it to the process you are actually using.
 
-1. **Is it consistent?**
-   Does similar work go through similar checks, or does the process change depending on what the agent happens to remember that day?
+1. **Consistency: similar work goes through similar checks.**
+   Does yours? Or does the process change depending on what the agent happens to remember that day?
 
-2. **Is it predictable?**
-   Do you know what artifact, decision, or check comes next? Can you tell when the agent has skipped a step, or do you only discover the process after it happens?
+2. **Predictability: you know what artifact or decision comes next.**
+   Do you know what comes next in your process? Can you tell when the agent skipped a step, or do you only discover the process after it happens?
 
-3. **Is it resumable?**
+3. **Resumability: a new session can recover what is happening and why.**
    Could a fresh session recover the same intention, constraints, failed attempts, and remaining work? Not merely continue producing code. Resume the actual work.
 
-4. **Is it auditable?**
-   Where do the important decisions and hard-earned lessons live? Can people and agents read the same linked source, or does the real explanation only exist in a chat you are afraid to close?
+4. **Auditability: important decisions leave something readable behind.**
+   Where do your decisions and hard-earned lessons live? Can people and agents read the same linked source, or does the real explanation only exist in a chat you are afraid to close?
 
-5. **Is it correctable?**
-   Where can you stop, inspect, reject, or redirect the work? Which controls are instructions the model might follow, and which ones can actually block a bad action?
+5. **Correctability: there are places to stop, inspect, and redirect.**
+   Where are those places in your process? Which controls are instructions the model might follow, and which ones can actually block a bad action?
 
-6. **Is it proportionate?**
-   What failure are you trying to prevent, and is the process sized for that failure? A typo does not need an architecture review. An authentication rewrite probably needs more than a good prompt.
+6. **Proportionality: a typo does not need the same ritual as an authentication rewrite.**
+   What failure are you trying to prevent, and is your process sized for that failure? Are you adding ceremony because it helps, or because the framework told you to?
 
-7. **Does it produce evidence?**
-   What does “done” mean? Is there an observable result, a command, a test, a review, or a deployed version? Or does done mean the agent wrote a convincing summary?
+7. **Evidence: “done” means something observable happened.**
+   What does done mean in your process? Is there a command, a test, a review, or a deployed version? Or does done mean the agent wrote a convincing summary?
 
 Then ask one final question:
 
@@ -282,7 +282,9 @@ Then ask one final question:
 
 A beautiful workflow you bypass under pressure is not your process. The shortcut you take every Friday afternoon is your process.
 
-The goal is not to make your agent behave like a tiny employee trapped inside a software-development bureaucracy. The goal is to make the work consistent enough to trust, predictable enough to follow, resumable after the context is gone, auditable when something looks wrong, correctable before the mistake spreads, proportionate to the risk, and supported by actual evidence.
+These were the seven promises at the beginning of the article. If your process does not make the work more consistent, predictable, resumable, auditable, correctable, proportionate, and evidenced, then the process is not doing its job. It is just generating paperwork around the slopware.
+
+The goal is not to make your agent behave like a tiny employee trapped inside a software-development bureaucracy. The goal is to make those seven promises true with the minimum amount of process you will actually maintain.
 
 If your current setup can preserve intent, control the dangerous actions, save the hard-earned lessons, and produce evidence, it is probably enough. Keep it small.
 
