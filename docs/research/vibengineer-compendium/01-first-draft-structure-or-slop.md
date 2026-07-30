@@ -147,11 +147,9 @@ I would not use it by itself for security-sensitive or high-risk work. Use it wi
 
 It connects design, planning, TDD, implementation, review, verification, and finally what to do with the branch. It also works across a lot of different coding agents, which matters if you do not want your whole process tied to one tool.
 
-The problem it is trying to prevent is the agent hearing an idea, immediately writing code, and then congratulating itself.
+The problem it is trying to prevent is the agent hearing an idea, immediately writing code without pausing to assess itself.
 
-You pay for that with checkpoints. For a real feature, that is probably good. For a typo, it is ridiculous.
-
-If you or your team will bypass it every time you are in a hurry, do not install the whole thing. A small process you actually follow is better than a sophisticated one you train yourself to ignore.
+You pay for that with checkpoints which for a real feature is useful. If you or your team will bypass it every time you are in a hurry, do not install the whole thing. A small process you actually follow is better than a sophisticated one you train yourself to ignore.
 
 <a id="complexity-spec-kit"></a>
 ### Complexity 3 — You want governed, portable specification workflows: GitHub Spec Kit
@@ -251,7 +249,41 @@ If you want somewhere to start, start here:
 
 You can add a framework later. By then you will know which problem you need it to solve.
 
-This still does not solve architecture. A very well-behaved agent can put the same business rule in three different modules.
+## Review: what process are you actually running?
+
+Before you install a framework, build a memory system, or add another page of instructions, stop and answer these:
+
+1. **What failure are you trying to prevent?**
+   Is the agent solving the wrong problem, forgetting decisions, skipping tests, duplicating code, or claiming work is done when it is not? If you cannot name the failure, you cannot choose a proportionate process.
+
+2. **Where does the intent live?**
+   Can a person and a new agent session find the same task, decision, and example in the repository? Or does the real explanation only exist in a chat you are afraid to close?
+
+3. **Which parts are instructions and which parts are enforcement?**
+   What are you merely asking the model to remember? What will actually run, block, fail, or require approval?
+
+4. **Could a fresh session resume the work correctly?**
+   Not continue producing code. Resume the same intention, with the same constraints, knowing what was tried, what failed, and what still needs proof.
+
+5. **What does “done” mean?**
+   Is there an observable result, a command, a test, a review, or a deployed version? Or does done mean the agent wrote a convincing summary?
+
+6. **How many sources of truth did you create?**
+   Are people and agents reading the same linked documents? Can every index, graph, summary, or embedding be deleted and rebuilt from those files?
+
+7. **Will you maintain this process when you are tired and in a hurry?**
+   A beautiful workflow you bypass under pressure is not your process. The shortcut you take every Friday afternoon is your process.
+
+8. **Is your process minimal, or is it merely missing things?**
+   Minimal means every part earns its place. Missing means you find out what mattered after the agent has already shipped the mistake.
+
+The goal is not to make your agent behave like a tiny employee trapped inside a software-development bureaucracy. The goal is to make the work legible enough that you can tell what happened, correct it, resume it, and prove it.
+
+If your current setup can preserve intent, control the dangerous actions, save the hard-earned lessons, and produce evidence, it is probably enough. Keep it small.
+
+If it cannot, adding a smarter model is not going to fix the process around it. It will just produce the same slopware faster and with a better explanation.
+
+And even a very well-behaved agent can still put the same business rule in three different modules.
 
 That is Part II: establish ownership and dominance before the code goes out of control.
 
