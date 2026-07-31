@@ -24,6 +24,8 @@ My thesis for this series is simple:
 
 The short version: give your agent some structure or it is going to produce slopware.
 
+![A coding prompt splits into slopware on one side and a maintainable result guided by intent, process, state, and evidence on the other. The Vibengineer redirects an eager Agent toward the structured path.](images/01-structure-or-slopware.jpg)
+
 ## The process separates a shippable, maintainable product from slopware
 
 A useful agent process should give you at least seven things:
@@ -78,6 +80,8 @@ This is the most important mechanical distinction in the whole article.
 | Tool permissions | Limits what actions are available | An enforced boundary |
 | Tests, linters, and CI | Checks observable properties | A deterministic gate |
 | Human checkpoints | Decides whether work should continue | Accountable judgment |
+
+![The Agent follows a Post-it saying “Tell me how to do it,” while the Vibengineer points to increasingly strong controls from instructions through tests and CI.](images/02-guidance-vs-enforcement.jpg)
 
 Telling an agent “always run the formatter” is not the same as a hook running it after every edit. Telling an agent “never read secrets” is not the same as a permission system making the file unavailable.
 
@@ -207,6 +211,8 @@ They will drift.
 My recommendation is:
 
 > Keep one linked, human-readable set of project documents. Let humans and agents read the same files. Any RAG index, graph, DAG, embedding store, or generated summary should be a disposable view derived from that source.
+
+![The Vibengineer and Agent read the same linked project map, decisions, state, and known-issues documents. Search, RAG, graph, and DAG views are derived from that one readable source.](images/03-one-readable-truth.jpg)
 
 Start with boring files:
 
